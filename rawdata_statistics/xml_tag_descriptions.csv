@@ -1,60 +1,60 @@
-tag,description
-w,
-c,
-pc,
-l,
-sp,
-speaker,
-lb,
-p,
-stage,
-castItem,
-name,
-head,
-role,
-div,
-lg,
-roleDesc,
-castGroup,
-gi,
-addrLine,
-item,
-language,
-q,
-editor,
-respStmt,
-resp,
-title,
-date,
-licence,
-availability,
-idno,
-address,
-publicationStmt,
-publisher,
-editionStmt,
-author,
-titleStmt,
-edition,
-refsDecl,
-body,
-castList,
-front,
-text,
-langUsage,
-profileDesc,
-list,
-projectDesc,
-encodingDesc,
-biblFull,
-sourceDesc,
-fileDesc,
-teiHeader,
-TEI,
-rs,
-ab,
-label,
-milestone,
-note,
-hi,
-gap,
+tag,description,url
+w,<w> (word) represents a grammatical (not necessarily orthographic) word. [17.1 Linguistic Segment Categories 17.4.2 Lightweight Linguistic Annotation],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-w.html
+c,<c> (character) represents a character. [17.1 Linguistic Segment Categories],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-c.html
+pc,<pc> (punctuation character) contains a character or string of characters regarded as constituting a single punctuation mark. [17.1.2 Below the Word Level 17.4.2 Lightweight Linguistic Annotation],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-pc.html
+l,"<l> (verse line) contains a single, possibly incomplete, line of verse. [3.13.1 Core Tags for Verse 3.13 Passages of Verse or Drama 7.2.5 Speech Contents]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-l.html
+sp,"<sp> (speech) contains an individual speech in a performance text, or a passage presented as such in a prose or verse text. [3.13.2 Core Tags for Drama 3.13 Passages of Verse or Drama 7.2.2 Speeches and Speakers]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-sp.html
+speaker,"<speaker> contains a specialized form of heading or label, giving the name of one or more speakers in a dramatic text or fragment. [3.13.2 Core Tags for Drama]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-speaker.html
+lb,<lb> (line beginning) marks the beginning of a new (typographic) line in some edition or version of a text. [3.11.3 Milestone Elements 7.2.5 Speech Contents],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-lb.html
+p,<p> (paragraph) marks paragraphs in prose. [3.1 Paragraphs 7.2.5 Speech Contents],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-p.html
+stage,<stage> (stage direction) contains any kind of stage direction within a dramatic text or fragment. [3.13.2 Core Tags for Drama 3.13 Passages of Verse or Drama 7.2.4 Stage Directions],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-stage.html
+castItem,"<castItem> (cast list item) contains a single entry within a cast list, describing either a single role or a list of non-speaking roles. [7.1.4 Cast Lists]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-castItem.html
+name,"<name> (name, proper noun) contains a proper noun or noun phrase. [3.6.1 Referring Strings]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-name.html
+head,"<head> (heading) contains any type of heading, for example the title of a section, or the heading of a list, glossary, manuscript description, etc. [4.2.1 Headings and Trailers]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-head.html
+role,"<role> (role) contains the name of a dramatic role, as given in a cast list. [7.1.4 Cast Lists]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-role.html
+div,"<div> (text division) contains a subdivision of the front, body, or back of a text. [4.1 Divisions of the Body]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-div.html
+lg,"<lg> (line group) contains one or more verse lines functioning as a formal unit, e.g. a stanza, refrain, verse paragraph, etc. [3.13.1 Core Tags for Verse 3.13 Passages of Verse or Drama 7.2.5 Speech Contents]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-lg.html
+roleDesc,<roleDesc> (role description) describes a character's role in a drama. [7.1.4 Cast Lists],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-roleDesc.html
+castGroup,<castGroup> (cast list grouping) groups one or more individual castItem elements within a cast list. [7.1.4 Cast Lists],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-castGroup.html
+gi,<gi> (element name) contains the name (generic identifier) of an element. [22 Documentation Elements 22.5 Element Specifications],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-gi.html
+addrLine,"<addrLine> (address line) contains one line of a postal address. [3.6.2 Addresses 2.2.4 Publication, Distribution, Licensing, etc. 3.12.2.4 Imprint, Size of a Document, and Reprint Information]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-addrLine.html
+item,<item> (item) contains one component of a list. [3.8 Lists 2.6 The Revision Description],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-item.html
+language,<language> (language) characterizes a single language or sublanguage used within a text. [2.4.2 Language Usage],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-language.html
+q,"<q> (quoted) contains material which is distinguished from the surrounding text using quotation marks or a similar method, for any one of a variety of reasons including, but not limited to: direct speech or thought, technical terms or jargon, authorial distance, quotations from elsewhere, and passages that are mentioned but not used. [3.3.3 Quotation]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-q.html
+editor,"<editor> contains a secondary statement of responsibility for a bibliographic item, for example the name of an individual, institution or organization, (or of several such) acting as editor, compiler, translator, etc. [3.12.2.2 Titles, Authors, and Editors]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-editor.html
+respStmt,"<respStmt> (statement of responsibility) supplies a statement of responsibility for the intellectual content of a text, edition, recording, or series, where the specialized elements for authors, editors, etc. do not suffice or do not apply. May also be used to encode information about individuals or organizations which have played a role in the production or distribution of a bibliographic work. [3.12.2.2 Titles, Authors, and Editors 2.2.1 The Title Statement 2.2.2 The Edition Statement 2.2.5 The Series Statement]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-respStmt.html
+resp,"<resp> (responsibility) contains a phrase describing the nature of a person's intellectual responsibility, or an organization's role in the production or distribution of a work. [3.12.2.2 Titles, Authors, and Editors 2.2.1 The Title Statement 2.2.2 The Edition Statement 2.2.5 The Series Statement]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-resp.html
+title,"<title> (title) contains a title for any kind of work. [3.12.2.2 Titles, Authors, and Editors 2.2.1 The Title Statement 2.2.5 The Series Statement]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-title.html
+date,"<date> (date) contains a date in any format. [3.6.4 Dates and Times 2.2.4 Publication, Distribution, Licensing, etc. 2.6 The Revision Description 3.12.2.4 Imprint, Size of a Document, and Reprint Information 15.2.3 The Setting Description 13.4 Dates]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-date.html
+licence,"<licence> contains information about a licence or other legal agreement applicable to the text. [2.2.4 Publication, Distribution, Licensing, etc.]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-licence.html
+availability,"<availability> (availability) supplies information about the availability of a text, for example any restrictions on its use or distribution, its copyright status, any licence applying to it, etc. [2.2.4 Publication, Distribution, Licensing, etc.]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-availability.html
+idno,"<idno> (identifier) supplies any form of identifier used to identify some object, such as a bibliographic item, a person, a title, an organization, etc. in a standardized way. [13.3.1 Basic Principles 2.2.4 Publication, Distribution, Licensing, etc. 2.2.5 The Series Statement 3.12.2.4 Imprint, Size of a Document, and Reprint Information]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-idno.html
+address,"<address> (address) contains a postal address, for example of a publisher, an organization, or an individual. [3.6.2 Addresses 2.2.4 Publication, Distribution, Licensing, etc. 3.12.2.4 Imprint, Size of a Document, and Reprint Information]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-address.html
+publicationStmt,"<publicationStmt> (publication statement) groups information concerning the publication or distribution of an electronic or other text. [2.2.4 Publication, Distribution, Licensing, etc. 2.2 The File Description]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-publicationStmt.html
+publisher,"<publisher> (publisher) provides the name of the organization responsible for the publication or distribution of a bibliographic item. [3.12.2.4 Imprint, Size of a Document, and Reprint Information 2.2.4 Publication, Distribution, Licensing, etc.]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-publisher.html
+editionStmt,<editionStmt> (edition statement) groups information relating to one edition of a text. [2.2.2 The Edition Statement 2.2 The File Description],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-editionStmt.html
+author,"<author> (author) in a bibliographic reference, contains the name(s) of an author, personal or corporate, of a work; for example in the same form as that provided by a recognized bibliographic name authority. [3.12.2.2 Titles, Authors, and Editors 2.2.1 The Title Statement]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-author.html
+titleStmt,<titleStmt> (title statement) groups information about the title of a work and those responsible for its content. [2.2.1 The Title Statement 2.2 The File Description],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-titleStmt.html
+edition,<edition> (edition) describes the particularities of one edition of a text. [2.2.2 The Edition Statement],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-edition.html
+refsDecl,<refsDecl> (references declaration) specifies how canonical references are constructed for this text. [2.3.6.3 Milestone Method 2.3 The Encoding Description 2.3.6 The Reference System Declaration],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-refsDecl.html
+body,"<body> (text body) contains the whole body of a single unitary text, excluding any front or back matter. [4 Default Text Structure]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-body.html
+castList,<castList> (cast list) contains a single cast list or dramatis personae. [7.1.4 Cast Lists 7.1 Front and Back Matter ],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-castList.html
+front,"<front> (front matter) contains any prefatory matter (headers, abstracts, title page, prefaces, dedications, etc.) found at the start of a document, before the main body. [4.6 Title Pages 4 Default Text Structure]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-front.html
+text,"<text> (text) contains a single text of any kind, whether unitary or composite, for example a poem or drama, a collection of essays, a novel, a dictionary, or a corpus sample. [4 Default Text Structure 15.1 Varieties of Composite Text]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-text.html
+langUsage,"<langUsage> (language usage) describes the languages, sublanguages, registers, dialects, etc. represented within a text. [2.4.2 Language Usage 2.4 The Profile Description 15.3.2 Declarable Elements]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-langUsage.html
+profileDesc,"<profileDesc> (text-profile description) provides a detailed description of non-bibliographic aspects of a text, specifically the languages and sublanguages used, the situation in which it was produced, the participants and their setting. [2.4 The Profile Description 2.1.1 The TEI Header and Its Components]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-profileDesc.html
+list,<list> (list) contains any sequence of items organized as a list. [3.8 Lists],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-list.html
+projectDesc,"<projectDesc> (project description) describes in detail the aim or purpose for which an electronic file was encoded, together with any other relevant information concerning the process by which it was assembled or collected. [2.3.1 The Project Description 2.3 The Encoding Description 15.3.2 Declarable Elements]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-projectDesc.html
+encodingDesc,<encodingDesc> (encoding description) documents the relationship between an electronic text and the source or sources from which it was derived. [2.3 The Encoding Description 2.1.1 The TEI Header and Its Components],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-encodingDesc.html
+biblFull,"<biblFull> (fully-structured bibliographic citation) contains a fully-structured bibliographic citation, in which all components of the TEI file description are present. [3.12.1 Methods of Encoding Bibliographic References and Lists of References 2.2 The File Description 2.2.7 The Source Description 15.3.2 Declarable Elements]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-biblFull.html
+sourceDesc,"<sourceDesc> (source description) describes the source(s) from which an electronic text was derived or generated, typically a bibliographic description in the case of a digitized text, or a phrase such as ""born digital"" for a text which has no previous existence. [2.2.7 The Source Description]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-sourceDesc.html
+fileDesc,<fileDesc> (file description) contains a full bibliographic description of an electronic file. [2.2 The File Description 2.1.1 The TEI Header and Its Components],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-fileDesc.html
+teiHeader,<teiHeader> (TEI header) supplies descriptive and declarative metadata associated with a digital resource or set of resources. [2.1.1 The TEI Header and Its Components 15.1 Varieties of Composite Text],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-teiHeader.html
+TEI,"<TEI> (TEI document) contains a single TEI-conformant document, combining a single TEI header with one or more members of the model.resource class. Multiple TEI elements may be combined within a TEI (or teiCorpus) element. [4 Default Text Structure 15.1 Varieties of Composite Text]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-TEI.html
+rs,<rs> (referencing string) contains a general purpose name or referring string. [13.2.1 Personal Names 3.6.1 Referring Strings],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-rs.html
+ab,"<ab> (anonymous block) contains any arbitrary component-level unit of text, acting as an anonymous container for phrase or inter level elements analogous to, but without the semantic baggage of, a paragraph. [16.3 Blocks, Segments, and Anchors]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-ab.html
+label,"<label> (label) contains any label or heading used to identify part of a text, typically but not exclusively in a list or glossary. [3.8 Lists]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-label.html
+milestone,"<milestone> (milestone) marks a boundary point separating any kind of section of a text, typically but not necessarily indicating a point at which some part of a standard reference system changes, where the change is not represented by a structural element. [3.11.3 Milestone Elements]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-milestone.html
+note,<note> (note) contains a note or annotation. [3.9.1 Notes and Simple Annotation 2.2.6 The Notes Statement 3.12.2.8 Notes and Statement of Language 9.3.5.4 Notes within Entries],https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-note.html
+hi,"<hi> (highlighted) marks a word or phrase as graphically distinct from the surrounding text, for reasons concerning which no claim is made. [3.3.2.2 Emphatic Words and Phrases 3.3.2 Emphasis, Foreign Words, and Unusual Language]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-hi.html
+gap,"<gap> (gap) indicates a point where material has been omitted in a transcription, whether for editorial reasons described in the TEI header, as part of sampling practice, or because the material is illegible, invisible, or inaudible. [3.5.3 Additions, Deletions, and Omissions]",https://tei-c.org/release/doc/tei-p5-doc/en/html/ref-gap.html
