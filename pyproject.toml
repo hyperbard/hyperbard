@@ -13,6 +13,7 @@ pandas = "^1.4.2"
 matplotlib = "^3.5.1"
 seaborn = "^0.11.2"
 regex = "^2022.4.24"
+hypernetx = "^1.2.4"
 
 [tool.poetry.dev-dependencies]
 black = "^22.3.0"
