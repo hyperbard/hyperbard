@@ -7,6 +7,9 @@ import hypernetx as hnx
 import numpy as np
 import pandas as pd
 
+import seaborn as sns
+import matplotlib.pyplot as plt
+
 from hyperbard.preprocessing import get_filename_base
 
 
@@ -103,3 +106,18 @@ if __name__ == '__main__':
 
     df = pd.concat(rows)
     print(df)
+
+    cols = [
+        col for col in df.columns if col != 'play'
+    ]
+
+    df_melted = df[cols].melt(var_name='variable')
+    sns.displot(
+        df_melted,
+        x='value',
+        col='variable',
+        facet_kws={'sharex': False},
+        common_bins=False,
+    )
+
+    plt.show()
