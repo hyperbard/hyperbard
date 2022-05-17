@@ -12,6 +12,46 @@ import matplotlib.pyplot as plt
 
 from hyperbard.preprocessing import get_filename_base
 
+name_to_type = {
+    'alls-well-that-ends-well': 'comedy',
+    'a-midsummer-nights-dream': 'comedy',
+    'antony-and-cleopatra': 'tragedy',
+    'as-you-like-it': 'comedy',
+    'coriolanus': 'tragedy',
+    'cymbeline': 'tragedy',
+    'hamlet': 'tragedy',
+    'henry-iv-part-1': 'history',
+    'henry-iv-part-2': 'history',
+    'henry-viii': 'history',
+    'henry-vi-part-1': 'history',
+    'henry-vi-part-2': 'history',
+    'henry-vi-part-3': 'history',
+    'henry-v': 'history',
+    'julius-caesar': 'tragedy',
+    'king-john': 'history',
+    'king-lear': 'tragedy',
+    'loves-labors-lost': 'comedy',
+    'macbeth': 'tragedy',
+    'measure-for-measure': 'comedy',
+    'much-ado-about-nothing': 'comedy',
+    'othello': 'tragedy',
+    'pericles': 'comedy',
+    'richard-iii': 'history',
+    'richard-ii': 'history',
+    'romeo-and-juliet': 'tragedy',
+    'the-comedy-of-errors': 'comedy',
+    'the-merchant-of-venice': 'comedy',
+    'the-merry-wives-of-windsor': 'comedy',
+    'the-taming-of-the-shrew': 'comedy',
+    'the-tempest': 'comedy',
+    'the-two-gentlemen-of-verona': 'comedy',
+    'the-winters-tale': 'comedy',
+    'timon-of-athens': 'tragedy',
+    'titus-andronicus': 'tragedy',
+    'troilus-and-cressida': 'comedy',
+    'twelfth-night': 'comedy',
+}
+
 
 def build_hypergraphs(df, level):
     """Build hypergraphs) of specified level and return them."""
@@ -65,6 +105,7 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
 
     row = {
         'play': [name],
+        'type': [name_to_type[name]],
     }
 
     for k, v in data.items():
@@ -82,6 +123,11 @@ if __name__ == '__main__':
         # TODO: Need to decide on a proper hierarchy here. Higher values
         # are more granular.
         help='Specifies granularity level of hypergraph to build.'
+    )
+    parser.add_argument(
+        '-t', '--use-type',
+        action='store_true',
+        help='If set use type of play'
     )
     parser.add_argument(
         'INPUT',
@@ -111,10 +157,15 @@ if __name__ == '__main__':
         col for col in df.columns if col != 'play'
     ]
 
-    df_melted = df[cols].melt(var_name='variable')
+    df_melted = df.melt(id_vars=['play', 'type'], var_name='variable')
+
+    print(df_melted)
+
     sns.displot(
         df_melted,
         x='value',
+        row='type' if args.use_type else None,
+        hue='type' if args.use_type else None,
         col='variable',
         facet_kws={'sharex': False},
         common_bins=False,
