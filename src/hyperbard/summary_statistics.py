@@ -83,7 +83,8 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
     data = collections.defaultdict(list)
 
     for k, v in hypergraphs.items():
-        for s in 1, 2:
+        # TODO: go deeper/higher?
+        for s in [1]:
             comp = list(v.s_components(s))
             data[f'{s}_connected_components'].append(len(comp))
 
