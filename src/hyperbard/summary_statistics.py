@@ -48,11 +48,17 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
                 diam = v.diameter(s)
                 data[f'{s}_diameter'].append(diam)
 
-        data['n_nodes'] = v.number_of_nodes()
-        data['n_edges'] = v.number_of_edges()
-        data['avg_degree'] = np.mean([
-            v.degree(n) for n in v.nodes
-        ])
+            # TODO: not sure if this is the right way.
+            node_diameters = v.node_diameters(s)
+            data[f'avg_node_{s}_diameter'].append(np.mean(node_diameters[1]))
+
+        data['n_nodes'].append(v.number_of_nodes())
+        data['n_edges'].append(v.number_of_edges())
+        data['avg_degree'].append(
+                np.mean([
+                    v.degree(n) for n in v.nodes
+            ])
+        )
 
     row = {
         'play': [name],
