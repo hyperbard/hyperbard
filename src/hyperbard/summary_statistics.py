@@ -41,10 +41,12 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
 
     for k, v in hypergraphs.items():
         for s in 1, 2:
-            comp = v.s_components(s)
-            diam = v.diameter(s)
-            data[f'{s}_connected_components'].append(len(list(comp)))
-            data[f'{s}_diameter'].append(len(list(diam)))
+            comp = list(v.s_components(s))
+            data[f'{s}_connected_components'].append(len(comp))
+
+            if v.is_connected(s):
+                diam = v.diameter(s)
+                data[f'{s}_diameter'].append(diam)
 
         data['n_nodes'] = v.number_of_nodes()
         data['n_edges'] = v.number_of_edges()
