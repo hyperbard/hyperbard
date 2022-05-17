@@ -32,7 +32,7 @@ def build_hypergraphs(df, level):
 
 
 def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
-    """Given a set of hypergraph, calculate summary statistics.
+    """Given a set of hypergraphs, calculate summary statistics.
 
     This function will create a single row of a larger data frame,
     ultimately comprising more than one set of stats for one play.
@@ -55,8 +55,8 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
         data['n_nodes'].append(v.number_of_nodes())
         data['n_edges'].append(v.number_of_edges())
         data['avg_degree'].append(
-                np.mean([
-                    v.degree(n) for n in v.nodes
+            np.mean([
+                v.degree(n) for n in v.nodes
             ])
         )
 
