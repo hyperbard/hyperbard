@@ -1,9 +1,13 @@
 """Simple summary statistics for hypergraphs."""
 
 import argparse
+import collections
 
 import hypernetx as hnx
+import numpy as np
 import pandas as pd
+
+from hyperbard.preprocessing import get_filename_base
 
 
 def build_hypergraphs(df, level):
@@ -27,6 +31,29 @@ def build_hypergraphs(df, level):
          return Hs
 
 
+def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
+    """Given a set of hypergraph, calculate summary statistics.
+
+    This function will create a single row of a larger data frame,
+    ultimately comprising more than one set of stats for one play.
+    """
+    data = collections.defaultdict(list)
+
+    for k, v in hypergraphs.items():
+        for s in 1, 2:
+            comp = v.s_components(s)
+            data[f'{s}_connected_components'].append(len(list(comp)))
+
+    row = {
+        'play': [name],
+    }
+
+    for k, v in data.items():
+        row[k] = aggregate_fn(v)
+
+    return row
+
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -46,9 +73,17 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
+    rows = []
+
     for file in args.INPUT:
         df = pd.read_csv(file)
         hypergraphs = build_hypergraphs(df, args.level)
 
-        print(hypergraphs)
+        basename = get_filename_base(file)
+        name = basename.split('_')[0]
 
+        row = calculate_summary_statistics(name, hypergraphs)
+        rows.append(pd.DataFrame.from_dict(row))
+
+    df = pd.concat(rows)
+    print(df)
