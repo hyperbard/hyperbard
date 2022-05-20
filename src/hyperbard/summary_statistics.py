@@ -11,42 +11,9 @@ import seaborn as sns
 
 from hyperbard.preprocessing import get_filename_base
 from hyperbard.statics import META_PATH
+from hyperbard.utils import build_hypergraphs
 
 NAME_TO_TYPE = pd.read_csv(f"{META_PATH}/playtypes.csv").set_index("play_name")
-
-
-def build_hypergraphs(df, level):
-    """Build hypergraphs of specified level and return them."""
-    if level == 1:
-        edges = []
-        for (act, scene), group in (
-            df.groupby(["act", "scene", "onstage"])
-            .agg(dict(n_tokens="sum"))
-            .reset_index()
-            .groupby(["act", "scene"])
-        ):
-            joined_group = tuple(sorted(set(" ".join(group.onstage).split())))
-            edges.append(joined_group)
-
-        H = hnx.Hypergraph(edges)
-        return {"full": H}
-
-    elif level == 2:
-        df_grouped = (
-            df.groupby(["stagegroup", "onstage", "act", "scene"])
-            .agg({"n_tokens": "sum"})
-            .reset_index()
-        )
-        df_grouped.onstage = df_grouped.onstage.map(lambda x: tuple(x.split()))
-
-        Hs = {
-            (act, scene): hnx.Hypergraph(
-                dict(df_grouped.query("act == @act and scene == @scene").onstage)
-            )
-            for (act, scene) in set(zip(df.act, df.scene))
-        }
-
-        return Hs
 
 
 def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
