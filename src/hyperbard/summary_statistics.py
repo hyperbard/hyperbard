@@ -3,11 +3,12 @@
 import argparse
 import collections
 
-import hypernetx as hnx
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 
 from hyperbard.preprocessing import get_filename_base
 from hyperbard.statics import META_PATH
@@ -25,18 +26,14 @@ def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):
     data = collections.defaultdict(list)
 
     for k, v in hypergraphs.items():
-        # TODO: go deeper/higher?
-        for s in [1]:
-            comp = list(v.s_components(s))
-            data[f"{s}_connected_components"].append(len(comp))
+        # TODO: go deeper/higher? I have not yet found a way to query
+        # the hypergraph about its maximum $s$-connectivity.
+        for s in [1, 2, 5]:
+            eccentricity = s_eccentricity(v, s=s, edges=False)
+            eccentricity = np.asarray(list(eccentricity.values()))
+            eccentricity = np.mean(eccentricity)
 
-            if v.is_connected(s):
-                diam = v.diameter(s)
-                data[f"{s}_diameter"].append(diam)
-
-            # TODO: not sure if this is the right way.
-            node_diameters = v.node_diameters(s)
-            data[f"avg_node_{s}_diameter"].append(np.mean(node_diameters[s]))
+            data[f"{s}_eccentricity"].append(eccentricity)
 
         data["n_nodes"].append(v.number_of_nodes())
         data["n_edges"].append(v.number_of_edges())
@@ -65,7 +62,7 @@ if __name__ == "__main__":
         help="Specifies granularity level of hypergraph to build.",
     )
     parser.add_argument(
-        "-t", "--use-type", action="store_true", help="If set use type of play"
+        "-t", "--use-type", action="store_true", help="If set, use type of play"
     )
     parser.add_argument("INPUT", nargs="+", type=str, help="Input filename(s)")
 
