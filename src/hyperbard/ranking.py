@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 import seaborn as sns
 
-from hypernetx.algorithms.s_centrality_measures import s_betweenness_centrality  
+from hypernetx.algorithms.s_centrality_measures import s_betweenness_centrality
 from hypernetx.algorithms.s_centrality_measures import s_closeness_centrality
 from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 
@@ -70,24 +70,27 @@ def calculate_centrality(hypergraphs, normalise=True):
     ]
 
     df = pd.concat(columns, axis='columns')
+    df.index.name = 'character'
     return df
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-l",
-        "--level",
-        type=int,
-        default=1,
-        # TODO: Need to decide on a proper hierarchy here. Higher values
-        # are more granular.
-        help="Specifies granularity level of hypergraph to build.",
-    )
     parser.add_argument("INPUT", type=str, help="Input filename")
 
     args = parser.parse_args()
 
-    df = pd.read_csv(args.INPUT)
-    hypergraphs = build_hypergraphs(df, args.level)
-    calculate_centrality(hypergraphs)
+    df_data = pd.read_csv(args.INPUT)
+
+    # TODO: Go over all levels...
+    hypergraphs = build_hypergraphs(df_data, 1)
+    df = calculate_centrality(hypergraphs)
+
+    df_ranked = df.rank(axis='rows', method='min', ascending=False)
+    g = sns.lineplot(data=df_ranked.T, legend=False)
+
+    labels = df_ranked[df_ranked.columns[0]].sort_values()
+    g.set_yticks(labels.values)
+    g.set_yticklabels(labels.index.values)
+
+    plt.show()
