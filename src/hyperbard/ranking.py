@@ -4,13 +4,13 @@ import argparse
 import collections
 
 import matplotlib.pyplot as plt
-import numpy as np
 import pandas as pd
 import seaborn as sns
 
 from hypernetx.algorithms.s_centrality_measures import s_betweenness_centrality
 from hypernetx.algorithms.s_centrality_measures import s_closeness_centrality
 from hypernetx.algorithms.s_centrality_measures import s_eccentricity
+from hypernetx.algorithms.s_centrality_measures import s_harmonic_centrality
 
 from hyperbard.utils import build_hypergraphs
 
@@ -50,6 +50,7 @@ def calculate_centrality(hypergraphs, normalise=True):
         'betweenness_centrality': s_betweenness_centrality,
         'closeness_centrality': s_closeness_centrality,
         'eccentricity': s_eccentricity,
+        'harmonic_centrality': s_harmonic_centrality,
     }
 
     for k, v in hypergraphs.items():
@@ -82,15 +83,27 @@ if __name__ == "__main__":
 
     df_data = pd.read_csv(args.INPUT)
 
-    # TODO: Go over all levels...
-    hypergraphs = build_hypergraphs(df_data, 1)
-    df = calculate_centrality(hypergraphs)
+    # Store rankings over different representations. They key describes
+    # the representation, the value contains the ranked data frame.
+    rankings = {}
 
-    df_ranked = df.rank(axis='rows', method='min', ascending=False)
-    g = sns.lineplot(data=df_ranked.T, legend=False)
+    # TODO: Refactor to account for different representations
+    for level in [1, 2]:
+        hypergraphs = build_hypergraphs(df_data, level=level)
+        df = calculate_centrality(hypergraphs)
 
-    labels = df_ranked[df_ranked.columns[0]].sort_values()
-    g.set_yticks(labels.values)
-    g.set_yticklabels(labels.index.values)
+        df_ranked = df.rank(axis='rows', method='min')
+        rankings[f'level{level}'] = df_ranked
+
+    fig, ax = plt.subplots(nrows=len(rankings))
+
+    for axis, rep in zip(ax.ravel(), rankings.keys()):
+        axis.set_title(rep)
+        df = rankings[rep]
+        g = sns.lineplot(data=df.T, legend=False, ax=axis)
+
+        labels = df[df.columns[0]].sort_values()
+        g.set_yticks(labels.values)
+        g.set_yticklabels(labels.index.values)
 
     plt.show()
