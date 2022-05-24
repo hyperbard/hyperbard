@@ -15,6 +15,14 @@ from hypernetx.algorithms.s_centrality_measures import s_harmonic_centrality
 from hyperbard.utils import build_hypergraphs
 
 
+def s_degree_centrality(H, s=1, **kwargs):
+    """Calculate degree centrality values of a hypergraph."""
+    values = {}
+    for node in H.nodes:
+        values[node] = H.s_degree(node, s=s)
+    return values
+
+
 def calculate_centrality(hypergraphs, normalise=True):
     """Calculate centrality for all nodes.
 
@@ -49,6 +57,7 @@ def calculate_centrality(hypergraphs, normalise=True):
     centrality_functions = {
         'betweenness_centrality': s_betweenness_centrality,
         'closeness_centrality': s_closeness_centrality,
+        'degree_centrality': s_degree_centrality,
         'eccentricity': s_eccentricity,
         'harmonic_centrality': s_harmonic_centrality,
     }
