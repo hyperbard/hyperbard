@@ -1,6 +1,7 @@
 from glob import glob
 from itertools import combinations
 
+import numpy as np
 import seaborn as sns
 
 sns.set_style("whitegrid")
@@ -234,9 +235,6 @@ def get_character_ranking_df(df):
         "006_act_scene_stagegroup_setting_bipartite_lines_out": character_rank_dictionary(
             centrality_ranking_with_equalities(bG3, weight="n_lines", centrality="out")
         ),
-        "007_act_scene_stagegroup_setting_bipartite_lines_io": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG3, weight="n_lines", centrality=None)
-        ),
         "01_act_scene_simple": character_rank_dictionary(
             centrality_ranking_with_equalities(G)
         ),
@@ -286,7 +284,43 @@ def plot_character_rankings(df, save_path=None):
     plt.legend(loc=(1, 0), labels=labels)
     plt.tight_layout()
     if save_path is not None:
-        plt.savefig(save_path, transparent=True)
+        plt.savefig(save_path, transparent=True, bbox_inches="tight", backend="pgf")
+        plt.close()
+
+
+def plot_correlation_matrix(df, save_path=None):
+    character_ranking_df = get_character_ranking_df(df)
+    character_ranking_df_indexed = character_ranking_df.set_index("index")
+    vmin = min(
+        character_ranking_df_indexed.corr("spearman").min().min(),
+        character_ranking_df_indexed.corr("kendall").min().min(),
+    )
+    sns.heatmap(
+        character_ranking_df_indexed.corr("kendall"),
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.tril(character_ranking_df_indexed.corr("kendall").values, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+        cbar=False,
+    )
+    sns.heatmap(
+        character_ranking_df_indexed.corr("spearman"),
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.triu(character_ranking_df_indexed.corr("spearman").values, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+    )
+    plt.title("upper triangle: kendall, lower triangle: spearman")
+    if save_path is not None:
+        plt.savefig(save_path, transparent=True, backend="pgf", bbox_inches="tight")
         plt.close()
 
 
@@ -298,4 +332,7 @@ if __name__ == "__main__":
         df = pd.read_csv(file)
         plot_character_rankings(
             df, save_path=f"{GRAPHICS_PATH}/{file_short}_clique_expansions.pdf"
+        )
+        plot_correlation_matrix(
+            df, save_path=f"{GRAPHICS_PATH}/{file_short}_ranking_correlations.pdf"
         )
