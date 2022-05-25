@@ -8,6 +8,7 @@ sns.set_style("whitegrid")
 import matplotlib.pyplot as plt
 import networkx as nx
 import pandas as pd
+import regex as re
 from matplotlib import cm
 
 from hyperbard.preprocessing import get_filename_base
@@ -16,6 +17,10 @@ from hyperbard.statics import DATA_PATH, GRAPHICS_PATH
 
 def character_string_to_sorted_list(character_string):
     return sorted(set(character_string.split()))
+
+
+def split_identifier(character_string):
+    return re.split("_.*?$", character_string, maxsplit=1)[0].replace("#", "")
 
 
 def join_strings(list_of_strings):
@@ -112,20 +117,27 @@ def get_character_ranking_df(df):
     G = get_count_weighted_graph(df, groupby=["act", "scene"])
     G2 = get_count_weighted_graph(df, groupby=["act", "scene", "stagegroup"])
     ranks = {
-        "02_act_scene_multi": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG)
-        ),
-        "04_act_scene_stagegroup_multi": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG2)
-        ),
         "01_act_scene_simple": character_rank_dictionary(
             centrality_ranking_with_equalities(G)
         ),
-        "03_act_scene_stagegroup_simple": character_rank_dictionary(
+        "02_act_scene_multi": character_rank_dictionary(
+            centrality_ranking_with_equalities(mG)
+        ),
+        "03_act_scene_multi_lines": character_rank_dictionary(
+            centrality_ranking_with_equalities(mG, weight="n_lines")
+        ),
+        "04_act_scene_stagegroup_simple": character_rank_dictionary(
             centrality_ranking_with_equalities(G2)
         ),
+        "05_act_scene_stagegroup_multi": character_rank_dictionary(
+            centrality_ranking_with_equalities(mG2)
+        ),
+        "06_act_scene_stagegroup_multi_lines": character_rank_dictionary(
+            centrality_ranking_with_equalities(mG2, weight="n_lines")
+        ),
     }
-    return pd.DataFrame.from_records(ranks).reset_index()
+    rank_df = pd.DataFrame.from_records(ranks).reset_index()
+    return rank_df.sort_values(by=rank_df.columns[-1])
 
 
 def plot_character_rankings(df, save_path=None):
@@ -133,12 +145,25 @@ def plot_character_rankings(df, save_path=None):
     baby plotting function (wip!)
     """
     character_ranking_df = get_character_ranking_df(df)
-    fig, ax = plt.subplots(1, 1, figsize=(12, 9 + len(character_ranking_df) // 10))
+    fig, ax = plt.subplots(
+        1,
+        1,
+        figsize=(
+            3 * (len(character_ranking_df.columns) - 1),
+            9 + len(character_ranking_df) // 10,
+        ),
+    )
+    ax.set_prop_cycle(linestyle=["-", "--", ":", "-."], marker=["^", ">", "v", "<"])
     pd.plotting.parallel_coordinates(
-        character_ranking_df, class_column="index", colormap=cm.viridis, ax=ax
+        character_ranking_df,
+        class_column="index",
+        colormap=cm.viridis,
+        ax=ax,
+        alpha=0.5,
     )
     ax.invert_yaxis()
-    plt.legend(loc=(1, 0))
+    labels = [split_identifier(elem.get_text()) for elem in ax.legend().get_texts()]
+    plt.legend(loc=(1, 0), labels=labels)
     plt.tight_layout()
     if save_path is not None:
         plt.savefig(save_path, transparent=True)
