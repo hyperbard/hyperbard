@@ -15,9 +15,9 @@ from hypernetx.algorithms.s_centrality_measures import (
 )
 
 from hyperbard.representations import (
-    build_hypergraphs,
     get_bipartite_graph,
     get_count_weighted_graph,
+    get_hypergraphs,
     get_weighted_multigraph,
 )
 
@@ -240,7 +240,7 @@ if __name__ == "__main__":
 
     # TODO: Refactor to account for different representations
     for level in [1, 2]:
-        hypergraphs = build_hypergraphs(df_data, level=level)
+        hypergraphs = get_hypergraphs(df_data, level=level)
         df = calculate_centrality(hypergraphs)
 
         df_ranked = df.rank(axis="rows", method="min")

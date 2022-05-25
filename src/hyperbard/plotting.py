@@ -1,9 +1,13 @@
+import os
 from glob import glob
+from itertools import product
 
+import hypernetx as hnx
 import numpy as np
 import seaborn as sns
 
 from hyperbard.ranking import get_character_ranking_df
+from hyperbard.representations import get_hypergraphs
 from hyperbard.utils import split_identifier
 
 sns.set_style("whitegrid")
@@ -82,12 +86,122 @@ def plot_correlation_matrix(df, save_path=None):
         plt.close()
 
 
+def plot_hypergraphs(df, groupby, separate="graph", save_path=None):
+    Hs = get_hypergraphs(df, groupby, separate)
+    layout_kwargs = {"layout_kwargs": {"seed": 1234}}
+    if separate == "graph":
+        H = Hs[(0, 0)]
+        hnx.draw(
+            H,
+            node_labels={n.uid: split_identifier(n.uid) for n in H.nodes()},
+            node_radius=dict(
+                (
+                    df.groupby(["speaker"]).agg({"n_lines": "sum"}) / 200 + 1
+                ).n_lines.items()
+            ),
+            with_edge_labels=False,
+            edges_kwargs=dict(
+                edgecolors=[cm.viridis_r(x / len(H)) for x in range(len(H))]
+            ),
+            **layout_kwargs,
+        )
+    elif separate == "act":
+        n_acts = len(set(tup[0] for tup in Hs))
+        fig, ax = plt.subplots(1, n_acts, figsize=(n_acts * 5, 5))
+        for (act, scene) in sorted(Hs):
+            tax = ax[act - 1]
+            tax.set_title(f"Act {act}")
+            hnx.draw(
+                Hs[(act, scene)],
+                ax=tax,
+                node_labels={
+                    n.uid: split_identifier(n.uid) for n in Hs[(act, scene)].nodes()
+                },
+                node_radius=dict(
+                    (
+                        df.query("act == @act")
+                        .groupby(["speaker"])
+                        .agg({"n_lines": "sum"})
+                        / 25
+                        + 1
+                    ).n_lines.items()
+                ),
+                with_edge_labels=False,
+                edges_kwargs=dict(
+                    edgecolors=[
+                        cm.viridis_r(x / len(Hs[(act, scene)]))
+                        for x in range(len(Hs[(act, scene)]))
+                    ]
+                ),
+                **layout_kwargs,
+            )
+    elif separate == "scene":
+        n_acts = len(set(tup[0] for tup in Hs))
+        n_scenes = len(set(tup[1] for tup in Hs))
+        fig, ax = plt.subplots(n_scenes, n_acts, figsize=(n_acts * 5, n_scenes * 5))
+        for act, scene in sorted(Hs):
+            tax = ax[scene - 1][act - 1]
+            tax.set_title(f"Act {act}, Scene {scene}")
+            hnx.draw(
+                Hs[(act, scene)],
+                ax=tax,
+                node_labels={
+                    n.uid: split_identifier(n.uid) for n in Hs[(act, scene)].nodes()
+                },
+                node_radius=dict(
+                    (
+                        df.query("act == @act and scene == @scene")
+                        .groupby(["speaker"])
+                        .agg({"n_lines": "sum"})
+                        / 25
+                        + 1
+                    ).n_lines.items()
+                ),
+                with_edge_labels=False,
+                edges_kwargs=dict(
+                    edgecolors=[
+                        cm.viridis_r(x / len(Hs[(act, scene)]))
+                        for x in range(len(Hs[(act, scene)]))
+                    ]
+                ),
+                **layout_kwargs,
+            )
+        for x, y in product(list(range(n_scenes)), list(range(n_acts))):
+            ax[x][y].axis("off")
+    else:
+        raise ValueError(
+            f"separate={separate} but must be one of ['graph', 'act', 'scene']"
+        )
+    plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, transparent=True, backend="pgf", bbox_inches="tight")
+        plt.close()
+
+
 if __name__ == "__main__":
     files = sorted(glob(f"{DATA_PATH}/*agg.csv"))
+    os.makedirs(GRAPHICS_PATH, exist_ok=True)
     for file in files:
         file_short = get_filename_base(file).split("_")[0]
         print(file_short)
         df = pd.read_csv(file)
+        # file naming practice is file_short_{grouped by what}_{aggregated for viz into what}
+        for groupby in [["act", "scene"], ["act", "scene", "stagegroup"]]:
+            for separate in ["graph", "act"]:
+                plot_hypergraphs(
+                    df,
+                    groupby,
+                    separate=separate,
+                    save_path=f"{GRAPHICS_PATH}/{file_short}_{'-'.join(groupby)}_{separate}.pdf",
+                )
+            if groupby == ["act", "scene", "stagegroup"]:
+                separate = "scene"
+                plot_hypergraphs(
+                    df,
+                    groupby,
+                    separate=separate,
+                    save_path=f"{GRAPHICS_PATH}/{file_short}_{'-'.join(groupby)}_{separate}.pdf",
+                )
         plot_character_rankings(
             df,
             save_path=f"{GRAPHICS_PATH}/{file_short}_ranking_parallel_coordinates.pdf",

@@ -101,35 +101,58 @@ def get_count_weighted_graph(df: pd.DataFrame, groupby: list):
     return G
 
 
-def build_hypergraphs(df: pd.DataFrame, level):
-    """Build hypergraphs of specified level and return them."""
-    if level == 1:
-        edges = []
-        for (act, scene), group in (
-            df.groupby(["act", "scene", "onstage"])
-            .agg(dict(n_tokens="sum"))
-            .reset_index()
-            .groupby(["act", "scene"])
-        ):
-            joined_group = tuple(sorted(set(" ".join(group.onstage).split())))
-            edges.append(joined_group)
+def get_hypergraphs(df: pd.DataFrame, groupby: list, separate="play"):
+    """
+    groupby = ["act", "scene"] -> one edge per act and scene
+    groupby = ["act", "scene", "stagegroup"] -> one edge per act, scene, and stagegroup
+    separate can be "play", "act", or "scene" - if "play", one graph (0,0) will be returned for the entire play;
+    if "act", one graph per act (act_n,0);
+    if "scene", one graph per scene (act_n, scene_n).
+    """
+    df_grouped = (
+        df.groupby(groupby)
+        .agg({"n_tokens": "sum", "n_lines": "sum", "onstage": "min"})
+        .reset_index()
+    )
+    df_grouped["onstage"] = df_grouped["onstage"].map(character_string_to_sorted_list)
+    Hs = dict()
 
-        H = hnx.Hypergraph(edges)
-        return {"full": H}
-
-    elif level == 2:
-        df_grouped = (
-            df.groupby(["stagegroup", "onstage", "act", "scene"])
-            .agg({"n_tokens": "sum"})
-            .reset_index()
-        )
-        df_grouped.onstage = df_grouped.onstage.map(lambda x: tuple(x.split()))
-
-        Hs = {
-            (act, scene): hnx.Hypergraph(
-                dict(df_grouped.query("act == @act and scene == @scene").onstage)
+    if separate == "scene":
+        if groupby == ["act", "scene"]:
+            raise ValueError(
+                f"groupby={groupby} does not make sense for separation at scene level (graph = edge)!"
             )
-            for (act, scene) in set(zip(df.act, df.scene))
-        }
-
-        return Hs
+        for (act, scene) in set(zip(df.act, df.scene)):
+            Hs[(act, scene)] = hnx.Hypergraph()
+            for idx, row in df_grouped.query(
+                "act == @act and scene == @scene"
+            ).iterrows():
+                Hs[(act, scene)].add_edge(
+                    hnx.Entity(
+                        idx,
+                        row["onstage"],
+                        **{k: v for k, v in row.items() if k != "onstage"},
+                    )
+                )
+    elif separate == "act":
+        for act in df.act.unique():
+            Hs[(act, 0)] = hnx.Hypergraph()
+            for idx, row in df_grouped.query("act == @act").iterrows():
+                Hs[(act, 0)].add_edge(
+                    hnx.Entity(
+                        idx,
+                        row["onstage"],
+                        **{k: v for k, v in row.items() if k != "onstage"},
+                    )
+                )
+    else:  # separate == "play"
+        Hs[(0, 0)] = hnx.Hypergraph()
+        for idx, row in df_grouped.iterrows():
+            Hs[(0, 0)].add_edge(
+                hnx.Entity(
+                    idx,
+                    row["onstage"],
+                    **{k: v for k, v in row.items() if k != "onstage"},
+                )
+            )
+    return Hs
