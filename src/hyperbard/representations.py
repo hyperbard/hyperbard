@@ -40,7 +40,39 @@ def get_bipartite_graph(df: pd.DataFrame, groupby: list):
     df_aggregated["onstage"] = df_aggregated["onstage"].map(
         character_string_to_sorted_list
     )
-    if groupby != ["act", "scene", "stagegroup", "setting", "speaker"]:
+    if groupby == ["act", "scene", "stagegroup", "setting", "speaker"]:
+        # TODO: lot's of modeling decisions here - document properly!
+        df_aggregated["speaker"] = df_aggregated["speaker"].map(
+            character_string_to_sorted_list
+        )
+        G = nx.MultiDiGraph()
+        text_units = list(
+            zip(*[df_aggregated[c].values for c in df_aggregated[groupby[:3]].columns])
+        )
+        G.add_nodes_from(
+            [elem for sublist in df_aggregated.onstage for elem in sublist],
+            node_type="character",
+        )
+        G.add_nodes_from(text_units, node_type="text_unit")
+        for idx, row in df_aggregated.iterrows():
+            row_node = tuple(row[x] for x in groupby[:3])
+            row_speaker_list = row["speaker"]
+            row_lines = row["n_lines"]
+            row_tokens = row["n_tokens"]
+            for row_speaker in row_speaker_list:
+                G.add_edge(
+                    row_speaker, row_node, n_lines=row_lines, n_tokens=row_tokens
+                )
+            G.add_edges_from(
+                [
+                    (row_node, character)
+                    for character in row["onstage"]
+                    if character not in row_speaker_list
+                ],
+                n_lines=row_lines,
+                n_tokens=row_tokens,
+            )
+    else:
         G = nx.Graph()
         text_units = list(
             zip(*[df_aggregated[c].values for c in df_aggregated[groupby].columns])
@@ -57,31 +89,7 @@ def get_bipartite_graph(df: pd.DataFrame, groupby: list):
                 n_lines=row["n_lines"],
                 n_tokens=row["n_tokens"],
             )
-    else:
-        G = nx.MultiDiGraph()
-        text_units = list(
-            zip(*[df_aggregated[c].values for c in df_aggregated[groupby[:3]].columns])
-        )
-        G.add_nodes_from(
-            [elem for sublist in df_aggregated.onstage for elem in sublist],
-            node_type="character",
-        )
-        G.add_nodes_from(text_units, node_type="text_unit")
-        for idx, row in df_aggregated.iterrows():
-            row_node = tuple(row[x] for x in groupby[:3])
-            row_speaker = row["speaker"]
-            row_lines = row["n_lines"]
-            row_tokens = row["n_tokens"]
-            G.add_edge(row_speaker, row_node, n_lines=row_lines, n_tokens=row_tokens)
-            G.add_edges_from(
-                [
-                    (row_node, character)
-                    for character in row["onstage"]
-                    if character != row_speaker
-                ],
-                n_lines=row_lines,
-                n_tokens=row_tokens,
-            )
+
     return G
 
 
