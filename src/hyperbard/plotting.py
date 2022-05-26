@@ -7,7 +7,7 @@ import numpy as np
 import seaborn as sns
 
 from hyperbard.ranking import get_character_ranking_df
-from hyperbard.representations import get_hypergraphs
+from hyperbard.representations import get_hypergraph
 from hyperbard.utils import split_identifier
 
 sns.set_style("whitegrid")
@@ -87,10 +87,9 @@ def plot_correlation_matrix(df, save_path=None):
 
 
 def plot_hypergraphs(df, groupby, separate="graph", save_path=None):
-    Hs = get_hypergraphs(df, groupby, separate)
+    H = get_hypergraph(df, groupby)
     layout_kwargs = {"layout_kwargs": {"seed": 1234}}
     if separate == "graph":
-        H = Hs[(0, 0)]
         hnx.draw(
             H,
             node_labels={n.uid: split_identifier(n.uid) for n in H.nodes()},
@@ -106,17 +105,18 @@ def plot_hypergraphs(df, groupby, separate="graph", save_path=None):
             **layout_kwargs,
         )
     elif separate == "act":
-        n_acts = len(set(tup[0] for tup in Hs))
+        acts = sorted(set(e.act for e in H.edges()))
+        n_acts = len(acts)
         fig, ax = plt.subplots(1, n_acts, figsize=(n_acts * 5, 5))
-        for (act, scene) in sorted(Hs):
+        for act in acts:
             tax = ax[act - 1]
             tax.set_title(f"Act {act}")
+            nH = H.restrict_to_edges([e for e in H.edges() if e.act == act])
             hnx.draw(
-                Hs[(act, scene)],
+                nH,
                 ax=tax,
-                node_labels={
-                    n.uid: split_identifier(n.uid) for n in Hs[(act, scene)].nodes()
-                },
+                node_labels={n.uid: split_identifier(n.uid) for n in nH.nodes()},
+                # TODO speaker can be list
                 node_radius=dict(
                     (
                         df.query("act == @act")
@@ -128,26 +128,27 @@ def plot_hypergraphs(df, groupby, separate="graph", save_path=None):
                 ),
                 with_edge_labels=False,
                 edges_kwargs=dict(
-                    edgecolors=[
-                        cm.viridis_r(x / len(Hs[(act, scene)]))
-                        for x in range(len(Hs[(act, scene)]))
-                    ]
+                    edgecolors=[cm.viridis_r(x / len(nH)) for x in range(len(nH))]
                 ),
                 **layout_kwargs,
             )
     elif separate == "scene":
-        n_acts = len(set(tup[0] for tup in Hs))
-        n_scenes = len(set(tup[1] for tup in Hs))
+        acts = sorted(set(e.act for e in H.edges()))
+        n_acts = len(acts)
+        scenes = sorted(set(e.scene for e in H.edges()))
+        n_scenes = len(scenes)
         fig, ax = plt.subplots(n_scenes, n_acts, figsize=(n_acts * 5, n_scenes * 5))
-        for act, scene in sorted(Hs):
+        for act, scene in sorted(set((e.act, e.scene) for e in H.edges())):
             tax = ax[scene - 1][act - 1]
             tax.set_title(f"Act {act}, Scene {scene}")
+            nH = H.restrict_to_edges(
+                [e for e in H.edges() if e.act == act and e.scene == scene]
+            )
+            # TODO pull out drawing into function
             hnx.draw(
-                Hs[(act, scene)],
+                nH,
                 ax=tax,
-                node_labels={
-                    n.uid: split_identifier(n.uid) for n in Hs[(act, scene)].nodes()
-                },
+                node_labels={n.uid: split_identifier(n.uid) for n in nH.nodes()},
                 node_radius=dict(
                     (
                         df.query("act == @act and scene == @scene")
@@ -159,10 +160,7 @@ def plot_hypergraphs(df, groupby, separate="graph", save_path=None):
                 ),
                 with_edge_labels=False,
                 edges_kwargs=dict(
-                    edgecolors=[
-                        cm.viridis_r(x / len(Hs[(act, scene)]))
-                        for x in range(len(Hs[(act, scene)]))
-                    ]
+                    edgecolors=[cm.viridis_r(x / len(nH)) for x in range(len(nH))]
                 ),
                 **layout_kwargs,
             )

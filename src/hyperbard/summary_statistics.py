@@ -10,7 +10,7 @@ import seaborn as sns
 from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 
 from hyperbard.preprocessing import get_filename_base
-from hyperbard.representations import get_hypergraphs
+from hyperbard.representations import get_hypergraph
 from hyperbard.statics import META_PATH
 
 NAME_TO_TYPE = pd.read_csv(f"{META_PATH}/playtypes.csv").set_index("play_name")
@@ -71,7 +71,7 @@ if __name__ == "__main__":
 
     for file in args.INPUT:
         df = pd.read_csv(file)
-        hypergraphs = get_hypergraphs(df, args.level)
+        hypergraphs = get_hypergraph(df, args.level)
 
         basename = get_filename_base(file)
         name = basename.split("_")[0]
