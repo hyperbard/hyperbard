@@ -16,11 +16,26 @@ from hyperbard.representations import (
 )
 
 
-def s_degree_centrality(H, s=1, **kwargs):
+def s_degree_centrality(H, s=1, weight=None):
     """Calculate degree centrality values of a hypergraph."""
     values = {}
     for node in H.nodes:
         values[node] = H.degree(node, s=s)
+
+
+        if weight is not None:
+            # Get all edges of size at least `s` in which the specific
+            # node participates.
+            memberships = H.nodes[node].memberships
+            edges = set(e for e in memberships if len(H.edges[e]) >= s)
+
+            # Just to be sure this does not come back and bite us...
+            assert len(edges) == values[node]
+
+            values[node] = sum(
+                getattr(H.edges[e], weight) for e in edges
+            )
+
     return values
 
 
@@ -110,7 +125,7 @@ def degree_centrality_hypergraph(H, weight=None, centrality=None):
     # TODO: Make configurable? I have not yet found a way to query the
     # hypergraph about its maximum $s$-connectivity.
     for s in [1, 2, 5]:
-        values = s_degree_centrality(H, s=s, edges=False)
+        values = s_degree_centrality(H, s=s, weight=weight)
 
         if normalise:
             values = _normalise(values)
@@ -216,8 +231,14 @@ def get_character_ranking_df(df):
         "07_hypergraph_act_scene": character_rank_dictionary(
             centrality_ranking_with_equalities(hG1)
         ),
+        "08_hypergraph_act_scene_lines": character_rank_dictionary(
+            centrality_ranking_with_equalities(hG1, weight="n_lines")
+        ),
         "08_hypergraph_act_scene_stagegroup": character_rank_dictionary(
             centrality_ranking_with_equalities(hG2)
+        ),
+        "09_hypergraph_act_scene_stagegroup_lines": character_rank_dictionary(
+            centrality_ranking_with_equalities(hG2, weight="n_lines")
         ),
     }
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
