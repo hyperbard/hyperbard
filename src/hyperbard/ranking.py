@@ -20,7 +20,7 @@ def s_degree_centrality(H, s=1, **kwargs):
     """Calculate degree centrality values of a hypergraph."""
     values = {}
     for node in H.nodes:
-        values[node] = H.s_degree(node, s=s)
+        values[node] = H.degree(node, s=s)
     return values
 
 
