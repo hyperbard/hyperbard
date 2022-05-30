@@ -291,37 +291,3 @@ def get_character_ranking_df(df):
     }
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
     return rank_df.sort_values(by=rank_df.columns[-1])
-
-
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("INPUT", type=str, help="Input filename")
-
-    args = parser.parse_args()
-
-    df_data = pd.read_csv(args.INPUT)
-
-    # Store rankings over different representations. They key describes
-    # the representation, the value contains the ranked data frame.
-    rankings = {}
-
-    # TODO: Refactor to account for different representations
-    for level in [1, 2]:
-        hypergraphs = get_hypergraph(df_data, level=level)
-        df = calculate_centrality(hypergraphs)
-
-        df_ranked = df.rank(axis="rows", method="min")
-        rankings[f"level{level}"] = df_ranked
-
-    fig, ax = plt.subplots(nrows=len(rankings))
-
-    for axis, rep in zip(ax.ravel(), rankings.keys()):
-        axis.set_title(rep)
-        df = rankings[rep]
-        g = sns.lineplot(data=df.T, legend=False, ax=axis)
-
-        labels = df[df.columns[0]].sort_values()
-        g.set_yticks(labels.values)
-        g.set_yticklabels(labels.index.values)
-
-    plt.show()
