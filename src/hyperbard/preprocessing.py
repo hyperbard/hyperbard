@@ -70,7 +70,6 @@ def set_onstage(df):
     for idx, row in df.iterrows():
         prev_onstage = df.at[idx - 1, "onstage"] if idx > 0 else set()
         prev_act = df.at[idx - 1, "act"] if idx > 0 else 0
-        prev_scene = df.at[idx - 1, "scene"] if idx > 0 else 0
         #  flush characters when new act starts
         #  necessary to limit repercussions of encoding "errors" in stage directions
         #  e.g., dead or unconscious people are not usually marked up as exiting
@@ -79,6 +78,7 @@ def set_onstage(df):
         #  Folger Shakespeare (differing from the Oxford Version also in the text) does not
         #  have Brutus and Cassius enter Scene III separately, and there might be more
         #  instances like this
+        #  flushing after every act also is problematic b/c in rare instances, characters remain across acts (see below)
         if row["act"] != prev_act:  # or row["scene"] != prev_scene:
             prev_onstage = set()
         #  register changes to characters (within the same scene) + make sure speaker is always on stage
