@@ -68,14 +68,22 @@ def set_onstage(df):
     )
     df["onstage"] = [set()] * len(df)
     for idx, row in df.iterrows():
+        prev_onstage = df.at[idx - 1, "onstage"] if idx > 0 else set()
+        prev_act = df.at[idx - 1, "act"] if idx > 0 else 0
+        prev_scene = df.at[idx - 1, "scene"] if idx > 0 else 0
+        #  flush characters when new act or scene starts
+        #  necessary to limit repercussions of encoding "errors" in stage directions
+        #  e.g., dead or unconscious people are not usually marked up as exiting
+        #  cause of discovery: in R&J, Juliet not marked to exit at the end of Act IV
+        if row["act"] != prev_act or row["scene"] != prev_scene:
+            prev_onstage = set()
+        #  register changes to characters (within the same scene)
         if row["tag"] == "stage" and row["type"] == "entrance":
-            df.at[idx, "onstage"] = df.at[idx - 1, "onstage"] | row["who"]
+            df.at[idx, "onstage"] = prev_onstage | row["who"]
         elif row["tag"] == "stage" and row["type"] == "exit":
-            df.at[idx, "onstage"] = df.at[idx - 1, "onstage"] - row["who"]
+            df.at[idx, "onstage"] = prev_onstage - row["who"]
         else:
-            df.at[idx, "onstage"] = (
-                df.at[idx - 1, "onstage"] if idx >= 1 else df.at[idx, "onstage"]
-            )
+            df.at[idx, "onstage"] = prev_onstage if idx >= 1 else df.at[idx, "onstage"]
     df.onstage = df.onstage.apply(
         lambda x: " ".join(sorted(x)) if not pd.isna(x) else x
     )
