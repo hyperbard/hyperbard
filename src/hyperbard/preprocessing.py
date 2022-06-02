@@ -81,8 +81,10 @@ def set_onstage(df):
         #  instances like this
         if row["act"] != prev_act:  # or row["scene"] != prev_scene:
             prev_onstage = set()
-        #  register changes to characters (within the same scene)
-        if row["tag"] == "stage" and row["type"] == "entrance":
+        #  register changes to characters (within the same scene) + make sure speaker is always on stage
+        if (row["tag"] == "stage" and row["type"] == "entrance") or (
+            row["tag"] == "sp" and row["who"]
+        ):
             df.at[idx, "onstage"] = prev_onstage | row["who"]
         elif row["tag"] == "stage" and row["type"] == "exit":
             df.at[idx, "onstage"] = prev_onstage - row["who"]
