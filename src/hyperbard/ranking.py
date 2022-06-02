@@ -1,12 +1,11 @@
 """Simple summary statistics for hypergraphs."""
 
-import collections
+from collections import OrderedDict, defaultdict
 
 import hypernetx as hnx
 import networkx as nx
 import numpy as np
 import pandas as pd
-
 
 from hyperbard.representations import (
     get_bipartite_graph,
@@ -22,7 +21,6 @@ def s_degree_centrality(H, s=1, weight=None):
     for node in H.nodes:
         values[node] = H.degree(node, s=s)
 
-
         if weight is not None:
             # Get all edges of size at least `s` in which the specific
             # node participates.
@@ -32,9 +30,7 @@ def s_degree_centrality(H, s=1, weight=None):
             # Just to be sure this does not come back and bite us...
             assert len(edges) == values[node]
 
-            values[node] = sum(
-                getattr(H.edges[e], weight) for e in edges
-            )
+            values[node] = sum(getattr(H.edges[e], weight) for e in edges)
 
     return values
 
@@ -42,17 +38,9 @@ def s_degree_centrality(H, s=1, weight=None):
 def degree_centrality(G, weight=None, centrality=None):
     """Wrapper function for degree centrality of (hyper)graphs."""
     if isinstance(G, hnx.Hypergraph):
-        return degree_centrality_hypergraph(
-            G,
-            weight=weight,
-            centrality=centrality
-        )
+        return degree_centrality_hypergraph(G, weight=weight, centrality=centrality)
     else:
-        return degree_centrality_graph(
-            G,
-            weight=weight,
-            centrality=centrality
-        )
+        return degree_centrality_graph(G, weight=weight, centrality=centrality)
 
 
 def degree_centrality_graph(G, weight=None, centrality=None):
@@ -120,7 +108,7 @@ def degree_centrality_hypergraph(H, weight=None, centrality=None):
     # Store centrality values for each node. Since we are iterating over
     # different `s` connectivity values, multiple centrality values will
     # be stored and have to be aggregated later.
-    centrality = collections.defaultdict(list)
+    centrality = defaultdict(list)
 
     # TODO: Make configurable? I have not yet found a way to query the
     # hypergraph about its maximum $s$-connectivity.
@@ -136,9 +124,7 @@ def degree_centrality_hypergraph(H, weight=None, centrality=None):
     # TODO: Make configurable
     agg_fn = np.sum
 
-    centrality = {
-        k: agg_fn(v) for k, v in centrality.items()
-    }
+    centrality = {k: agg_fn(v) for k, v in centrality.items()}
 
     return centrality
 
@@ -180,10 +166,10 @@ def character_rank_dictionary(centrality_ranking):
 
 
 def get_character_ranking_df(df):
-    mG = get_weighted_multigraph(df, groupby=["act", "scene"])
-    mG2 = get_weighted_multigraph(df, groupby=["act", "scene", "stagegroup"])
     G = get_count_weighted_graph(df, groupby=["act", "scene"])
     G2 = get_count_weighted_graph(df, groupby=["act", "scene", "stagegroup"])
+    mG = get_weighted_multigraph(df, groupby=["act", "scene"])
+    mG2 = get_weighted_multigraph(df, groupby=["act", "scene", "stagegroup"])
     bG = get_bipartite_graph(df, groupby=["act", "scene"])
     bG2 = get_bipartite_graph(df, groupby=["act", "scene", "stagegroup"])
     bG3 = get_bipartite_graph(
@@ -191,55 +177,55 @@ def get_character_ranking_df(df):
     )
     hG1 = get_hypergraph(df, groupby=["act", "scene"])
     hG2 = get_hypergraph(df, groupby=["act", "scene", "stagegroup"])
-    ranks = {
-        "001_act_scene_bipartite": character_rank_dictionary(
+    ranks = OrderedDict({
+        "01_se-scene-b": character_rank_dictionary(
             centrality_ranking_with_equalities(bG)
         ),
-        "002_act_scene_bipartite_lines": character_rank_dictionary(
+        "02_se-scene-w": character_rank_dictionary(
             centrality_ranking_with_equalities(bG, weight="n_lines")
         ),
-        "003_act_scene_stagegroup_bipartite": character_rank_dictionary(
+        "03_se-group-b": character_rank_dictionary(
             centrality_ranking_with_equalities(bG2)
         ),
-        "004_act_scene_stagegroup_bipartite_lines": character_rank_dictionary(
+        "04_se-group-w": character_rank_dictionary(
             centrality_ranking_with_equalities(bG2, weight="n_lines")
         ),
-        "005_act_scene_stagegroup_setting_bipartite_lines_in": character_rank_dictionary(
+        "05_se-speech-wd_in": character_rank_dictionary(
             centrality_ranking_with_equalities(bG3, weight="n_lines", centrality="in")
         ),
-        "006_act_scene_stagegroup_setting_bipartite_lines_out": character_rank_dictionary(
+        "06_se-speech-wd_out": character_rank_dictionary(
             centrality_ranking_with_equalities(bG3, weight="n_lines", centrality="out")
         ),
-        "01_act_scene_simple": character_rank_dictionary(
+        "07_ce-scene-b": character_rank_dictionary(
             centrality_ranking_with_equalities(G)
         ),
-        "02_act_scene_multi": character_rank_dictionary(
+        "08_ce-scene-mb": character_rank_dictionary(
             centrality_ranking_with_equalities(mG)
         ),
-        "03_act_scene_multi_lines": character_rank_dictionary(
+        "09_ce-scene-mw": character_rank_dictionary(
             centrality_ranking_with_equalities(mG, weight="n_lines")
         ),
-        "04_act_scene_stagegroup_simple": character_rank_dictionary(
+        "10_ce-group-b": character_rank_dictionary(
             centrality_ranking_with_equalities(G2)
         ),
-        "05_act_scene_stagegroup_multi": character_rank_dictionary(
+        "11_ce-group-mb": character_rank_dictionary(
             centrality_ranking_with_equalities(mG2)
         ),
-        "06_act_scene_stagegroup_multi_lines": character_rank_dictionary(
+        "12_act_group-mw": character_rank_dictionary(
             centrality_ranking_with_equalities(mG2, weight="n_lines")
         ),
-        "07_hypergraph_act_scene": character_rank_dictionary(
+        "13_hg-scene-mb": character_rank_dictionary(
             centrality_ranking_with_equalities(hG1)
         ),
-        "08_hypergraph_act_scene_lines": character_rank_dictionary(
+        "14_hg-scene-mw": character_rank_dictionary(
             centrality_ranking_with_equalities(hG1, weight="n_lines")
         ),
-        "08_hypergraph_act_scene_stagegroup": character_rank_dictionary(
+        "15_hg-group-mb": character_rank_dictionary(
             centrality_ranking_with_equalities(hG2)
         ),
-        "09_hypergraph_act_scene_stagegroup_lines": character_rank_dictionary(
+        "16_hg-group-mw": character_rank_dictionary(
             centrality_ranking_with_equalities(hG2, weight="n_lines")
         ),
-    }
+    })
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
     return rank_df.sort_values(by=rank_df.columns[-1])
