@@ -16,6 +16,9 @@ def handle_file(file):
     df = get_annotated_xml_df(file)
     df.to_csv(f"{DATA_PATH}/{get_filename_base(file)}.raw.csv", index=False)
     aggdf = get_setting_df(df)
+    assert (
+        not aggdf.onstage.isna().any()
+    ), f"{file}: found nan values in 'onstage' column of aggregated (i.e., speech-only) dataframe!"
     aggdf.to_csv(f"{DATA_PATH}/{get_filename_base(file)}.agg.csv", index=False)
 
 
