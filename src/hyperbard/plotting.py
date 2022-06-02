@@ -5,6 +5,7 @@ from itertools import product
 import hypernetx as hnx
 import numpy as np
 import seaborn as sns
+from cycler import cycler
 
 from hyperbard.ranking import get_character_ranking_df
 from hyperbard.representations import get_hypergraph
@@ -33,11 +34,15 @@ def plot_character_rankings(df, save_path=None):
             9 + len(character_ranking_df) // 10,
         ),
     )
-    ax.set_prop_cycle(linestyle=["-", "--", ":", "-."], marker=["^", ">", "v", "<"])
+    custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
+        marker=["^", ">", "v", "<"]
+    )
+    cmap = lambda i: cm.tab20c(i) if i % 2 == 0 else cm.tab20b(i)
+    ax.set_prop_cycle(custom_cycler)
     pd.plotting.parallel_coordinates(
         character_ranking_df,
         class_column="index",
-        colormap=cm.viridis,
+        colormap=cmap,
         ax=ax,
         alpha=0.5,
     )
