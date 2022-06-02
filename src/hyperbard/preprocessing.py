@@ -83,7 +83,7 @@ def set_onstage(df):
             prev_onstage = set()
         #  register changes to characters (within the same scene) + make sure speaker is always on stage
         if (row["tag"] == "stage" and row["type"] == "entrance") or (
-            row["tag"] == "sp" and row["who"]
+            row["tag"] == "sp" and not pd.isna(row["who"])
         ):
             df.at[idx, "onstage"] = prev_onstage | row["who"]
         elif row["tag"] == "stage" and row["type"] == "exit":
