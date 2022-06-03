@@ -50,3 +50,14 @@ $ poetry run python run_preprocessing.py
 This will create CSV files and store them in the `data` folder of the
 repository. This script is idempotent; it will refresh all files upon
 a new run.
+
+## Creating summary statistics of the raw data
+
+This will enable you to reproduce Fig. 1 in the paper, which depicts the
+statistics of our data set *prior* to converting plays into different
+representations:
+
+```bash
+$ cd src/hyperbard
+$ python summary_statistics_raw.py
+```
