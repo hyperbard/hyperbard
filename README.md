@@ -3,3 +3,50 @@ All the world's a (hyper)graph: drama data for data drama
 
 - [Folger Shakespeare](https://shakespeare.folger.edu/download-the-folger-shakespeare-complete-set/) (our data source)
 - [Oxford Shakespeare](https://oll.libertyfund.org/title/shakespeare-the-complete-works-of-william-shakespeare-part-1-the-oxford-shakespeare)
+
+## Installation and overview
+
+We recommend using the [`poetry`](https://python-poetry.org) package and
+dependency manager to install this work:
+
+```bash
+$ poetry install
+```
+
+Here is an overview of the directory structure after running the
+subsequent pre-processing steps:
+
+```
+├── data                # Will contain processed data in CSV format
+├── graphics            # Will contain graphics
+├── hypergraphs         # Will contain hypergraphs
+├── metadata            # Metadata information about plays
+├── notebooks           # Notebooks for analysis tasks
+├── rawdata             # Raw data in XML format
+├── rawdata_statistics  # Statistics about raw data
+├── src                 # Code and scripts
+└── tests               # Unit tests
+```
+
+## Extracting the raw data
+
+Create a folder `rawdata` in the root directory of this repository and
+extract the `rawdata.zip` into it:
+
+```bash
+$ unzip rawdata.zip -d rawdata/
+```
+
+## Usage
+
+Prior to analysing the (hyper)graphs, we first need to pre-process the
+data. This requires running the `run_preprocessing.py` script:
+
+```bash
+$ cd src/hyperbard
+$ poetry run python run_preprocessing.py
+```
+
+This will create CSV files and store them in the `data` folder of the
+repository. This script is idempotent; it will refresh all files upon
+a new run.
