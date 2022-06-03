@@ -2,7 +2,7 @@
 
 from glob import glob
 from hyperbard.preprocessing import get_filename_base
-from statics import DATA_PATH
+from statics import DATA_PATH, META_PATH
 
 import pandas as pd
 
@@ -10,6 +10,9 @@ import pandas as pd
 if __name__ == '__main__':
     filenames_raw = sorted(glob(f"{DATA_PATH}/*.raw.csv"))
     filenames_agg = sorted(glob(f"{DATA_PATH}/*.agg.csv"))
+
+    NAME_TO_TYPE = pd.read_csv(
+        f"{META_PATH}/playtypes.csv").set_index("play_name")
 
     # Will contain the results of all operations of this script.
     df_out = []
@@ -31,9 +34,10 @@ if __name__ == '__main__':
             'n_characters': n_characters,
             'n_words': n_words,
             'n_lines': n_lines,
+            'type': NAME_TO_TYPE.at[play, 'play_type'],
         }
 
         df_out.append(row)
 
     df_out = pd.DataFrame.from_records(df_out)
-    print(df_out)
+    print(df_out.to_csv(index=False))
