@@ -1,18 +1,17 @@
 """Calculate summary statistics of pre-processed raw data."""
 
 from glob import glob
-from hyperbard.preprocessing import get_filename_base
-from statics import DATA_PATH, META_PATH
 
 import pandas as pd
+from statics import DATA_PATH, META_PATH
 
+from hyperbard.preprocessing import get_filename_base
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     filenames_raw = sorted(glob(f"{DATA_PATH}/*.raw.csv"))
     filenames_agg = sorted(glob(f"{DATA_PATH}/*.agg.csv"))
 
-    NAME_TO_TYPE = pd.read_csv(
-        f"{META_PATH}/playtypes.csv").set_index("play_name")
+    NAME_TO_TYPE = pd.read_csv(f"{META_PATH}/playtypes.csv").set_index("play_name")
 
     # Will contain the results of all operations of this script.
     df_out = []
@@ -22,19 +21,23 @@ if __name__ == '__main__':
         df_agg = pd.read_csv(filename_agg, low_memory=False)
 
         play = get_filename_base(filename_raw)
-        play = play.split('_')[0]
+        play = play.split("_")[0]
 
-        n_characters = len(df_raw['speaker'].dropna().unique())
+        # TODO fix
+        # this currently counts unique entries in the speaker attribute
+        # - undercounting: characters that do not speak
+        # - overcounting: characters that also speak in groups (each group gets counted as a character)
+        n_characters = len(df_raw["speaker"].dropna().unique())
 
-        n_words = df_agg['n_tokens'].sum()
-        n_lines = df_agg['n_lines'].sum()
+        n_words = df_agg["n_tokens"].sum()
+        n_lines = df_agg["n_lines"].sum()
 
         row = {
-            'play': play,
-            'n_characters': n_characters,
-            'n_words': n_words,
-            'n_lines': n_lines,
-            'type': NAME_TO_TYPE.at[play, 'play_type'],
+            "play": play,
+            "n_characters": n_characters,
+            "n_words": n_words,
+            "n_lines": n_lines,
+            "type": NAME_TO_TYPE.at[play, "play_type"],
         }
 
         df_out.append(row)
