@@ -5,8 +5,12 @@ from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 
 
-def get_filename_base(file):
-    return os.path.splitext(os.path.split(file)[-1])[0]
+def get_filename_base(file, full=True):
+    filename_base = os.path.splitext(os.path.split(file)[-1])[0]
+    if full:
+        return filename_base
+    else:
+        return filename_base.split("_")[0]
 
 
 def get_soup(file, parser="lxml-xml"):
