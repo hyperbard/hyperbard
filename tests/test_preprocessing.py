@@ -1,4 +1,5 @@
 import math
+import os.path
 from unittest import TestCase
 
 from hyperbard.preprocessing import (
@@ -136,6 +137,10 @@ class PreprocessingTest(TestCase):
         with open(self.toy_xml_file, "w") as f:
             f.write(self.toy_xml_text)
         self.soup = get_soup(self.toy_xml_file)
+
+    def tearDown(self) -> None:
+        if os.path.exists(self.toy_xml_file):
+            os.remove(self.toy_xml_file)
 
     def test_get_body(self):
         self.assertEqual(get_body(self.soup).parent.name, "text")
