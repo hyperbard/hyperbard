@@ -2,7 +2,10 @@ import math
 import os.path
 from unittest import TestCase
 
+import pandas as pd
+
 from hyperbard.preprocessing import (
+    get_annotated_xml_df,
     get_attrs,
     get_body,
     get_soup,
@@ -12,6 +15,9 @@ from hyperbard.preprocessing import (
     is_navigable_string,
     is_redundant_element,
     keep_elem_in_xml_df,
+    set_act,
+    set_scene,
+    who_string_to_set,
 )
 
 
@@ -142,6 +148,10 @@ class PreprocessingTest(TestCase):
         if os.path.exists(self.toy_xml_file):
             os.remove(self.toy_xml_file)
 
+    def test_get_annotated_xml_df(self):
+        df = get_annotated_xml_df(self.toy_xml_file)
+        df
+
     def test_get_body(self):
         self.assertEqual(get_body(self.soup).parent.name, "text")
         self.assertEqual(get_body(self.soup).find_all("w")[0].get_text(), "ACT")
@@ -206,3 +216,23 @@ class PreprocessingTest(TestCase):
         elem_nokeep = self.soup.find("head")
         self.assertTrue(keep_elem_in_xml_df(elem_keep))
         self.assertFalse(keep_elem_in_xml_df(elem_nokeep))
+
+    def test_set_act(self):
+        df = get_xml_df(get_body(self.soup))
+        set_act(df)
+        self.assertListEqual(list(df.query("type == 'act'")["act"]), [1])
+        self.assertFalse(any(pd.isna(x) for x in df["act"]))
+        pass
+
+    def test_set_scene(self):
+        df = get_xml_df(get_body(self.soup))
+        set_scene(df)
+        self.assertTrue(set(df.query("type == 'act'")["scene"]) == {0})
+        self.assertFalse(0 in set(df.query("type != 'act'")["scene"]))
+        self.assertFalse(any(pd.isna(x) for x in df["scene"]))
+
+    def test_who_string_to_set(self):
+        who_string_nonan = "#A #B #A"
+        who_string_nan = float("nan")
+        self.assertEqual(who_string_to_set(who_string_nonan), {"#A", "#B"})
+        self.assertTrue(math.isnan(who_string_to_set(who_string_nan)))

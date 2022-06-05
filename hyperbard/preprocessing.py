@@ -4,6 +4,8 @@ import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, PageElement, Tag
 
+from hyperbard.utils import sort_join_strings
+
 
 def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
     """
@@ -108,27 +110,55 @@ def get_xml_df(body: Tag) -> pd.DataFrame:
     return pd.DataFrame.from_records(records)
 
 
-def set_act(df):
+def set_act(df: pd.DataFrame) -> None:
+    """
+    Adds act information to a pd.DataFrame created with get_xml_df, using the
+    observation that rows with type == "act" hold the new act number in column "n".
+    Complete via first forward-filling, then backward-filling,
+    and convert act numbers to integers.
+    Inductions, prologues, and epilogues receive special treatment as act 0
+    (inductions and prologues) resp. act 6 (epilogues).
+
+    :param df: pd.DataFrame created with get_xml_df
+    :return: None
+    """
     df["act"] = float("nan")
-    df.loc[df.query("type == 'act'").index, "act"] = df.query("type == 'act'")["n"]
-    df["act"] = df.act.ffill().bfill().astype(int)
+    act_query = "type == 'act'"
+    df.loc[df.query(act_query).index, "act"] = df.query(act_query)["n"]
+    induction_query = "type == 'induction' or type == 'prologue'"
+    df.loc[df.query(induction_query).index, "act"] = 0
+    epilogue_query = "type == 'epilogue'"
+    df.loc[df.query(epilogue_query).index, "act"] = 6
+    df["act"] = df["act"].ffill().bfill().astype(int)
 
 
-def set_scene(df):
+def set_scene(df: pd.DataFrame) -> None:
+    """
+    Adds scene information to a pd.DataFrame created with get_xml_df, using the
+    observation that rows with type == "scene" hold the new scene number in column "n".
+    Complete via first forward-filling, then backward-filling,
+    and convert act numbers to integers.
+    Acts, inductions, prologues, and epilogues receive special treatment as scene 0.
+
+    :param df: pd.DataFrame created with get_xml_df
+    :return: None
+    """
     df["scene"] = float("nan")
-    df.loc[df.query("type == 'act'").index, "scene"] = 0
+    special_types = ["act", "induction", "prologue", "epilogue"]
+    general_act_query = "type in @special_types"
+    df.loc[df.query(general_act_query).index, "scene"] = 0
     df.loc[df.query("type == 'scene'").index, "scene"] = df.query("type == 'scene'")[
         "n"
     ]
     df["scene"] = df.scene.ffill().bfill().astype(int)
 
 
-def set_onstage(df):
-    df["who"] = df.who.map(
-        lambda who_string: set(who_string.split())
-        if not pd.isna(who_string)
-        else who_string
-    )
+def who_string_to_set(who_string: Union[str, float]) -> Union[set, float]:
+    return set(who_string.split()) if not pd.isna(who_string) else who_string
+
+
+def set_onstage(df: pd.DataFrame) -> None:
+    df["who"] = df.who.map(who_string_to_set)
     df["onstage"] = [set()] * len(df)
     for idx, row in df.iterrows():
         prev_onstage = df.at[idx - 1, "onstage"] if idx > 0 else set()
@@ -152,13 +182,14 @@ def set_onstage(df):
         elif row["tag"] == "stage" and row["type"] == "exit":
             df.at[idx, "onstage"] = prev_onstage - row["who"]
         else:
-            df.at[idx, "onstage"] = prev_onstage if idx >= 1 else df.at[idx, "onstage"]
-    df.onstage = df.onstage.apply(
-        lambda x: " ".join(sorted(x)) if not pd.isna(x) else x
-    )
+            df.at[idx, "onstage"] = prev_onstage
+    assert not any(
+        pd.isna(x) for x in df["onstage"]
+    ), f"Found unexpected nan values in 'onstage' column!"
+    df.onstage = df.onstage.apply(sort_join_strings)
 
 
-def set_stagegroup(df):
+def set_stagegroup(df: pd.DataFrame) -> None:
     df["stagegroup"] = float("nan")
     stage_n = 0
     for idx1, (os1, os2) in enumerate(zip(df.onstage[:-1], df.shift(-1).onstage)):
@@ -183,8 +214,8 @@ def get_descendants_ids(elem):
     ]
 
 
-def set_speaker(df, soup):
-    speech_tags = soup.find_all("sp")
+def set_speaker(df, body):
+    speech_tags = body.find_all("sp")
     speaker_helper = zip(
         map(get_who_attributes, speech_tags),
         map(get_descendants_ids, speech_tags),
@@ -205,7 +236,7 @@ def get_annotated_xml_df(file):
     set_scene(df)
     set_onstage(df)
     set_stagegroup(df)
-    set_speaker(df, soup)
+    set_speaker(df, body)
     return df
 
 
