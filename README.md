@@ -20,8 +20,8 @@ subsequent pre-processing steps:
 
 ```
 ├── data                # Will contain processed data in CSV format
+├── graphdata           # Will contain graphs and hypergraphs
 ├── graphics            # Will contain graphics
-├── hypergraphs         # Will contain hypergraphs
 ├── metadata            # Metadata information about plays
 ├── notebooks           # Notebooks for analysis tasks
 ├── rawdata             # Raw data in XML format
