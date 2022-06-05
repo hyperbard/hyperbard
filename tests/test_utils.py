@@ -20,7 +20,7 @@ class UtilsTest(TestCase):
         #Hermia_MND #Lysander_MND #Theseus_MND   #ATTENDANTS_MND"
 
     def test_character_string_to_sorted_list(self):
-        self.assertEqual(
+        self.assertListEqual(
             character_string_to_sorted_list(self.character_string_unsorted),
             [
                 "#ATTENDANTS_MND",
