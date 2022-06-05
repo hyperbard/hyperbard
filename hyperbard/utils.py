@@ -1,6 +1,7 @@
 import os
-from typing import Iterable, List
+from typing import Iterable, List, Union
 
+import pandas as pd
 import regex as re
 
 
@@ -50,3 +51,18 @@ def get_filename_base(file: str, full: bool = True) -> str:
         return filename_base
     else:
         return filename_base.split("_")[0]
+
+
+def string_to_set(character_string: Union[str, float]) -> Union[set, float]:
+    """
+    Given a string of character identifiers of shape "id1 id2  id3 ... id1 idn",
+    or nan, return a set of the identifiers or nan.
+
+    :param character_string: string of character identifiers of shape "id1 id2  id3 ... id1 idn" or nan
+    :return: set of identifiers or nan
+    """
+    return (
+        set(re.split(r"\s+", character_string))
+        if not pd.isna(character_string)
+        else character_string
+    )

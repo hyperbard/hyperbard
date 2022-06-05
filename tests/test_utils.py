@@ -1,3 +1,4 @@
+import math
 from unittest import TestCase
 
 from hyperbard.utils import (
@@ -5,6 +6,7 @@ from hyperbard.utils import (
     get_filename_base,
     get_name_from_identifier,
     sort_join_strings,
+    string_to_set,
 )
 
 
@@ -61,3 +63,9 @@ class UtilsTest(TestCase):
             sort_join_strings(self.character_list),
             "#ATTENDANTS_MND #Hippolyta_MND #Philostrate_MND #Theseus_MND",
         )
+
+    def test_string_to_set(self):
+        who_string_nonan = "#A #B #A"
+        who_string_nan = float("nan")
+        self.assertEqual(string_to_set(who_string_nonan), {"#A", "#B"})
+        self.assertTrue(math.isnan(string_to_set(who_string_nan)))

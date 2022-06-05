@@ -3,8 +3,7 @@ from typing import Union
 import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, PageElement, Tag
-
-from hyperbard.utils import sort_join_strings
+from utils import sort_join_strings, string_to_set
 
 
 def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
@@ -153,33 +152,58 @@ def set_scene(df: pd.DataFrame) -> None:
     df["scene"] = df.scene.ffill().bfill().astype(int)
 
 
-def who_string_to_set(who_string: Union[str, float]) -> Union[set, float]:
-    return set(who_string.split()) if not pd.isna(who_string) else who_string
+def is_entrance(row):
+    return row["tag"] == "stage" and row["type"] == "entrance"
+
+
+def is_exit(row):
+    return row["tag"] == "stage" and row["type"] == "exit"
+
+
+def has_speaker(row):
+    return row["tag"] == "sp" and not pd.isna(row["who"])
+
+
+def is_new_act(row, prev_act):
+    return row["act"] != prev_act
 
 
 def set_onstage(df: pd.DataFrame) -> None:
-    df["who"] = df.who.map(who_string_to_set)
+    """
+    Adds information on who is onstage to a pd.DataFrame created with get_xml_df,
+    primarily based on hints in the XML attributes of "stage" and "sp" tags.
+
+    Notes:
+
+    - We ensure that the speaker(s) are always onstage.
+      Note that there can be multiple speakers for one line, hence the need to treat
+      the "who" attribute as a set.
+    - We flush characters when a new act starts.
+      Rationale: Limit repercussions of encoding "errors" in stage directions,
+      found, e.g., when characters are dead or unconscious and not marked as exiting.
+      Example: R&J - Juliet not marked up as exiting at the end of Act IV
+    - We do _not_ flush characters when a new scene starts.
+      Rationale: Stage directions in the Folger Shakespeare often use "Exeunt all but",
+      and as a consequence, only exits are marked up and not entries in the next scene.
+      Example: Julius Caesar - Brutus and Cassius not marked up to enter in Act IV Scene III,
+      but rather staying from Act IV Scene II (stage directions differ from the Oxford Shakespeare).
+    - Even flushing when a new act starts is problematic with the Folger stage directions,
+      but the problematic instances are very rare. We limit the impact of errors introduced
+      by this modeling choice by also ensuring that the speaker is always onstage.
+
+    :param df:
+    :return:
+    """
+    df["who"] = df.who.map(string_to_set)
     df["onstage"] = [set()] * len(df)
     for idx, row in df.iterrows():
         prev_onstage = df.at[idx - 1, "onstage"] if idx > 0 else set()
         prev_act = df.at[idx - 1, "act"] if idx > 0 else 0
-        #  flush characters when new act starts
-        #  necessary to limit repercussions of encoding "errors" in stage directions
-        #  e.g., dead or unconscious people are not usually marked up as exiting
-        #  cause of discovery: in R&J, Juliet not marked to exit at the end of Act IV
-        #  not flushing after every _scene_ b/c e.g., in Julius Caesar Act IV Scene II/III,
-        #  Folger Shakespeare (differing from the Oxford Version also in the text) does not
-        #  have Brutus and Cassius enter Scene III separately, and there might be more
-        #  instances like this
-        #  flushing after every act also is problematic b/c in rare instances, characters remain across acts (see below)
-        if row["act"] != prev_act:  # or row["scene"] != prev_scene:
+        if is_new_act(row, prev_act):
             prev_onstage = set()
-        #  register changes to characters (within the same scene) + make sure speaker is always on stage
-        if (row["tag"] == "stage" and row["type"] == "entrance") or (
-            row["tag"] == "sp" and not pd.isna(row["who"])
-        ):
+        if is_entrance(row) or has_speaker(row):
             df.at[idx, "onstage"] = prev_onstage | row["who"]
-        elif row["tag"] == "stage" and row["type"] == "exit":
+        elif is_exit(row):
             df.at[idx, "onstage"] = prev_onstage - row["who"]
         else:
             df.at[idx, "onstage"] = prev_onstage
@@ -207,11 +231,8 @@ def get_who_attributes(elem):
 
 
 def get_descendants_ids(elem):
-    return [
-        e.attrs["xml:id"]
-        for e in elem.descendants
-        if type(e) != NavigableString and e.attrs.get("n")
-    ]
+    descendants = [e for e in elem.descendants if not is_navigable_string(e)]
+    return [e.attrs["xml:id"] for e in descendants if e.attrs.get("n")]
 
 
 def set_speaker(df, body):
@@ -228,7 +249,7 @@ def set_speaker(df, body):
     )
 
 
-def get_annotated_xml_df(file):
+def get_raw_xml_df(file):
     soup = get_soup(file)
     body = get_body(soup)
     df = get_xml_df(body)
@@ -240,22 +261,7 @@ def get_annotated_xml_df(file):
     return df
 
 
-def get_setting_df(df):
-    # speaker mentions in text have already been filtered out in a previous step
-    # "n" attributes of stage directions start with SD
-    aggregated = (
-        df.query("tag == 'w' and not n.fillna('').str.contains('[A-Za-z]')")
-        .groupby(["stagegroup", "onstage", "speaker", "n"])
-        .count()[["tag"]]
-        .rename(dict(tag="n_tokens"), axis=1)
-        .reset_index()
-    )
-    aggregated["n_split"] = aggregated.n.map(
-        lambda identifier: [
-            int(id_part) for id_part in identifier.split()[-1].split(".")
-        ]
-    )
-    aggregated = aggregated.sort_values("n_split").reset_index(drop=True)
+def set_setting(aggregated):
     aggregated["setting"] = float("nan")
     setting_n = 1  # first non-empty stagegroup is 1, too -> consistency
     aggregated.at[0, "setting"] = setting_n
@@ -271,8 +277,9 @@ def get_setting_df(df):
             setting_n += 1
         aggregated.at[idx + 1, "setting"] = setting_n
     aggregated.setting = aggregated.setting.astype(int)
-    aggregated["act"] = aggregated.n_split.map(lambda x: x[0])
-    aggregated["scene"] = aggregated.n_split.map(lambda x: x[1])
+
+
+def get_grouped_df(aggregated):
     aggregated_grouped = (
         aggregated.groupby(
             ["stagegroup", "onstage", "speaker", "setting", "act", "scene"]
@@ -282,4 +289,40 @@ def get_setting_df(df):
         .rename(dict(n="n_lines"), axis=1)
         .sort_values("setting")
     )
-    return aggregated_grouped.reset_index(drop=True)
+    stagegroups_renumbered = {
+        elem: idx
+        for idx, elem in enumerate(
+            sorted(aggregated_grouped.stagegroup.unique()), start=1
+        )
+    }
+    aggregated_grouped["stagegroup_renumbered"] = aggregated_grouped.stagegroup.map(
+        lambda sg: stagegroups_renumbered[sg]
+    )
+    columns_ordered = [
+        "act",
+        "scene",
+        "stagegroup",
+        "stagegroup_renumbered",
+        "setting",
+        "onstage",
+        "speaker",
+        "n_lines",
+        "n_tokens",
+    ]
+    return aggregated_grouped[columns_ordered].reset_index(drop=True)
+
+
+def get_agg_xml_df(df):
+    # speaker mentions in text have already been filtered out in a previous step
+    # "n" attributes of stage directions start with SD
+    aggregated = (
+        df.query("tag == 'w' and not n.fillna('').str.startswith('SD')")
+        .groupby(["act", "scene", "stagegroup", "onstage", "speaker", "n"])
+        .agg({"tag": "count", "xml:id": "min"})
+        .rename(dict(tag="n_tokens"), axis=1)
+        .reset_index()
+    )
+    aggregated = aggregated.sort_values("xml:id").reset_index(drop=True)
+    set_setting(aggregated)
+    aggregated_grouped = get_grouped_df(aggregated)
+    return aggregated_grouped

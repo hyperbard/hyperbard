@@ -5,19 +5,20 @@ from unittest import TestCase
 import pandas as pd
 
 from hyperbard.preprocessing import (
-    get_annotated_xml_df,
     get_attrs,
     get_body,
+    get_raw_xml_df,
     get_soup,
     get_xml_df,
     is_descendant_of_redundant_element,
+    is_entrance,
+    is_exit,
     is_leaf,
     is_navigable_string,
     is_redundant_element,
     keep_elem_in_xml_df,
     set_act,
     set_scene,
-    who_string_to_set,
 )
 
 
@@ -98,6 +99,12 @@ class PreprocessingTest(TestCase):
               <w xml:id="fs-mnd-0000530" n="1.1.2" lemma="in" ana="#acp-p">in</w>
             </l>
           </sp>
+          <stage xml:id="stg-0364.1" n="SD 1.2.107.1" type="exit" who="#Quince_MND #Bottom_MND #Flute_MND #Snout_MND #Snug_MND #Starveling_MND">
+            <w xml:id="fs-mnd-0057740" n="SD 1.2.107.1">They</w>
+            <c> </c>
+            <w xml:id="fs-mnd-0057760" n="SD 1.2.107.1">exit</w>
+            <pc xml:id="fs-mnd-0057770" n="SD 1.2.107.1">.</pc>
+          </stage>
           <sp xml:id="sp-0012" who="#Theseus_MND">
             <speaker xml:id="spk-0012">
               <w xml:id="fs-mnd-0001840">THESEUS</w>
@@ -132,7 +139,7 @@ class PreprocessingTest(TestCase):
             <w xml:id="fs-mnd-0003280" n="SD 1.1.20.1">and</w>
             <c> </c>
             <w xml:id="fs-mnd-0003300" n="SD 1.1.20.1">Demetrius</w>
-            <pc xml:id="fs-mnd-0003310" n="SD 1.1.20.1">.</pc>
+            <pc xml:
           </stage>
         </div>
       </div>
@@ -149,7 +156,7 @@ class PreprocessingTest(TestCase):
             os.remove(self.toy_xml_file)
 
     def test_get_annotated_xml_df(self):
-        df = get_annotated_xml_df(self.toy_xml_file)
+        df = get_raw_xml_df(self.toy_xml_file)
         df
 
     def test_get_body(self):
@@ -178,10 +185,10 @@ class PreprocessingTest(TestCase):
     def test_get_xml_df(self):
         self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'l'")), 3)
         self.assertEqual(
-            len(get_xml_df(get_body(self.soup)).query("tag == 'stage'")), 2
+            len(get_xml_df(get_body(self.soup)).query("tag == 'stage'")), 3
         )
         self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'sp'")), 2)
-        self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'w'")), 33)
+        self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'w'")), 35)
 
     def test_is_descendant_of_redundant_element(self):
         elem_descendant_of_redundant = self.soup.find("w")
@@ -192,6 +199,16 @@ class PreprocessingTest(TestCase):
         self.assertFalse(
             is_descendant_of_redundant_element(elem_no_descendant_of_redundant)
         )
+
+    def test_is_entrance(self):
+        df = get_xml_df(get_body(self.soup))
+        for idx, row in df.query("tag == 'stage' and type == 'entrance'").iterrows():
+            self.assertTrue(is_entrance(row))
+
+    def test_is_exit(self):
+        df = get_xml_df(get_body(self.soup))
+        for idx, row in df.query("tag == 'stage' and type == 'exit'").iterrows():
+            self.assertTrue(is_exit(row))
 
     def test_is_leaf(self):
         elem_leaf = self.soup.find("w")
@@ -230,9 +247,3 @@ class PreprocessingTest(TestCase):
         self.assertTrue(set(df.query("type == 'act'")["scene"]) == {0})
         self.assertFalse(0 in set(df.query("type != 'act'")["scene"]))
         self.assertFalse(any(pd.isna(x) for x in df["scene"]))
-
-    def test_who_string_to_set(self):
-        who_string_nonan = "#A #B #A"
-        who_string_nan = float("nan")
-        self.assertEqual(who_string_to_set(who_string_nonan), {"#A", "#B"})
-        self.assertTrue(math.isnan(who_string_to_set(who_string_nan)))
