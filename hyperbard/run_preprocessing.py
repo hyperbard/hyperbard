@@ -2,9 +2,10 @@ import os
 from glob import glob
 from multiprocessing import Pool, cpu_count
 
-from preprocessing import get_agg_xml_df, get_raw_xml_df
 from statics import DATA_PATH, RAWDATA_PATH
-from utils import get_filename_base
+
+from hyperbard.preprocessing import get_agg_xml_df, get_raw_xml_df
+from hyperbard.utils import get_filename_base
 
 
 def handle_file(file):

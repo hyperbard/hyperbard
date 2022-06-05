@@ -3,7 +3,8 @@ from typing import Union
 import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, PageElement, Tag
-from utils import sort_join_strings, string_to_set
+
+from hyperbard.utils import sort_join_strings, string_to_set
 
 
 def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
