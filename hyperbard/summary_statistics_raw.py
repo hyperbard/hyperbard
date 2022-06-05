@@ -5,7 +5,7 @@ from glob import glob
 import pandas as pd
 from statics import DATA_PATH, META_PATH
 
-from hyperbard.preprocessing import get_filename_base
+from hyperbard.utils import get_filename_base
 
 
 def compute_raw_statistics(

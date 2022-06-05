@@ -1,25 +1,28 @@
-import os
-
 import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString
 
 
-def get_filename_base(file, full=True):
-    filename_base = os.path.splitext(os.path.split(file)[-1])[0]
-    if full:
-        return filename_base
-    else:
-        return filename_base.split("_")[0]
+def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
+    """
+    Parse an XML or HTML document with the specified BeautifulSoup parser.
 
-
-def get_soup(file, parser="lxml-xml"):
+    :param file: Path to file
+    :param parser: Parser to use
+    :return: BeautifulSoup object containing the parsed file
+    """
     with open(file) as f:
         soup = BeautifulSoup(f, parser)
     return soup
 
 
 def get_body(soup):
+    """
+    Extract the text body from an appropriately shaped BeautifulSoup object.
+
+    :param soup: BeautifulSoup with exactly one text.body object
+    :return: The text body as a BeautifulSoup object
+    """
     texts = soup.find_all("text")
     assert len(texts) == 1, "Found multiple text tags, expected exactly one."
     text = texts[0]
@@ -29,23 +32,33 @@ def get_body(soup):
 
 
 def get_attrs(elem):
+    """
+
+    :param elem:
+    :return:
+    """
     if len(elem.contents) <= 1:
         return {"tag": elem.name, **elem.attrs, "text": elem.text}
     else:
         return {"tag": elem.name, **elem.attrs, "text": float("nan")}
 
 
+def keep_elem(elem):
+    return (
+        type(elem) != NavigableString
+        and elem.name not in ["head", "speaker"]
+        and not {"head", "speaker"}.intersection(set([x.name for x in elem.parents]))
+    )  # filters out head and speaker words as info already in div attributes
+
+
 def get_xml_df(body):
+    """
+
+    :param body:
+    :return:
+    """
     return pd.DataFrame.from_records(
-        [
-            get_attrs(elem)
-            for elem in body.descendants
-            if type(elem) != NavigableString
-            and elem.name not in ["head", "speaker"]
-            and not {"head", "speaker"}.intersection(
-                set([x.name for x in elem.parents])
-            )  # filters out head and speaker words as info already in div attributes
-        ]
+        [get_attrs(elem) for elem in body.descendants if keep_elem(elem)]
     )
 
 

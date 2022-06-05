@@ -9,9 +9,9 @@ import pandas as pd
 import seaborn as sns
 from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 
-from hyperbard.preprocessing import get_filename_base
 from hyperbard.representations import get_hypergraph
 from hyperbard.statics import META_PATH
+from hyperbard.utils import get_filename_base
 
 NAME_TO_TYPE = pd.read_csv(f"{META_PATH}/playtypes.csv").set_index("play_name")
 

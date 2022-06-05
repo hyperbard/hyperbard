@@ -9,7 +9,11 @@ from cycler import cycler
 
 from hyperbard.ranking import get_character_ranking_df
 from hyperbard.representations import get_hypergraph
-from hyperbard.utils import character_string_to_sorted_list, get_name_from_identifier
+from hyperbard.utils import (
+    character_string_to_sorted_list,
+    get_filename_base,
+    get_name_from_identifier,
+)
 
 sns.set_style("whitegrid")
 
@@ -17,7 +21,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from matplotlib import cm
 
-from hyperbard.preprocessing import get_filename_base
 from hyperbard.statics import DATA_PATH, GRAPHICS_PATH
 
 

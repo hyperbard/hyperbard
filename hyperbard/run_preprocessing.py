@@ -4,22 +4,20 @@ from multiprocessing import Pool, cpu_count
 
 from statics import DATA_PATH, RAWDATA_PATH
 
-from hyperbard.preprocessing import (
-    get_annotated_xml_df,
-    get_filename_base,
-    get_setting_df,
-)
+from hyperbard.preprocessing import get_annotated_xml_df, get_setting_df
+from hyperbard.utils import get_filename_base
 
 
 def handle_file(file):
     print(f"Starting {file}...")
     df = get_annotated_xml_df(file)
-    df.to_csv(f"{DATA_PATH}/{get_filename_base(file)}.raw.csv", index=False)
+    filename_base = get_filename_base(file)
+    df.to_csv(f"{DATA_PATH}/{filename_base}.raw.csv", index=False)
     aggdf = get_setting_df(df)
     assert all(
         [bool(x) for x in aggdf.onstage]
     ), f"{file}: found nan values in 'onstage' column of aggregated (i.e., speech-only) dataframe!"
-    aggdf.to_csv(f"{DATA_PATH}/{get_filename_base(file)}.agg.csv", index=False)
+    aggdf.to_csv(f"{DATA_PATH}/{filename_base}.agg.csv", index=False)
 
 
 if __name__ == "__main__":
