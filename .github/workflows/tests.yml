@@ -19,7 +19,7 @@ jobs:
       run: |
         pip install pytest
         pip install pytest-cov
-        python -m pytest tests --cov=./src/hyperbard --cov-report=xml --remote
+        python -m pytest . --cov=./src/hyperbard --cov-report=xml --remote
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v2
       with:
