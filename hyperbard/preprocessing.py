@@ -20,6 +20,16 @@ def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
     return soup
 
 
+def get_cast_df(file: str) -> pd.DataFrame:
+    soup = get_soup(file)
+    cast_items = [item.attrs for item in soup.find_all("castItem")]
+    return (
+        pd.DataFrame.from_records(cast_items)
+        .sort_values("xml:id")
+        .reset_index(drop=True)
+    )
+
+
 def get_body(soup: BeautifulSoup) -> Tag:
     """
     Extract the text body from an appropriately shaped BeautifulSoup object.
