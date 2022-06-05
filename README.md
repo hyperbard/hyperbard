@@ -1,6 +1,8 @@
 # hyperbard
 All the world's a (hyper)graph: drama data for data drama
 
+[![codecov](https://codecov.io/gh/dataspider/hyperbard/branch/main/graph/badge.svg?token=D5QIXPFRB2)](https://codecov.io/gh/dataspider/hyperbard)
+
 - [Folger Shakespeare](https://shakespeare.folger.edu/download-the-folger-shakespeare-complete-set/) (our data source)
 - [Oxford Shakespeare](https://oll.libertyfund.org/title/shakespeare-the-complete-works-of-william-shakespeare-part-1-the-oxford-shakespeare)
 
