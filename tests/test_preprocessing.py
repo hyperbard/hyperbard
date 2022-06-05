@@ -5,6 +5,7 @@ from hyperbard.preprocessing import (
     get_attrs,
     get_body,
     get_soup,
+    get_xml_df,
     is_descendant_of_redundant_element,
     is_leaf,
     is_navigable_string,
@@ -136,12 +137,6 @@ class PreprocessingTest(TestCase):
             f.write(self.toy_xml_text)
         self.soup = get_soup(self.toy_xml_file)
 
-    def test_get_soup(self):
-        self.assertTrue(bool(get_soup(self.toy_xml_file).text))
-        self.assertEqual(
-            get_soup(self.toy_xml_file).find_all("w")[-1].get_text(), "Demetrius"
-        )
-
     def test_get_body(self):
         self.assertEqual(get_body(self.soup).parent.name, "text")
         self.assertEqual(get_body(self.soup).find_all("w")[0].get_text(), "ACT")
@@ -158,6 +153,20 @@ class PreprocessingTest(TestCase):
             get_attrs(elem_text),
             {"tag": "w", "xml:id": "fs-mnd-0000010", "text": "ACT"},
         )
+
+    def test_get_soup(self):
+        self.assertTrue(bool(get_soup(self.toy_xml_file).text))
+        self.assertEqual(
+            get_soup(self.toy_xml_file).find_all("w")[-1].get_text(), "Demetrius"
+        )
+
+    def test_get_xml_df(self):
+        self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'l'")), 3)
+        self.assertEqual(
+            len(get_xml_df(get_body(self.soup)).query("tag == 'stage'")), 2
+        )
+        self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'sp'")), 2)
+        self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'w'")), 33)
 
     def test_is_descendant_of_redundant_element(self):
         elem_descendant_of_redundant = self.soup.find("w")
