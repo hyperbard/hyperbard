@@ -130,26 +130,24 @@ class PreprocessingTest(TestCase):
         self.soup = get_soup(self.toy_xml_file)
 
     def test_get_soup(self):
-        self.assertTrue(bool(self.soup.text))
-        self.assertEqual(self.soup.find_all("w")[-1].get_text(), "Demetrius")
+        self.assertTrue(bool(get_soup(self.toy_xml_file).text))
+        self.assertEqual(
+            get_soup(self.toy_xml_file).find_all("w")[-1].get_text(), "Demetrius"
+        )
 
     def test_get_body(self):
-        body = get_body(self.soup)
-        self.assertEqual(body.parent.name, "text")
-        self.assertEqual(body.find_all("w")[0].get_text(), "ACT")
+        self.assertEqual(get_body(self.soup).parent.name, "text")
+        self.assertEqual(get_body(self.soup).find_all("w")[0].get_text(), "ACT")
 
     def test_get_attrs(self):
         elem_notext = self.soup.find("div")
-        attrs_notext = get_attrs(elem_notext)
-        self.assertTrue(math.isnan(attrs_notext["text"]))
-        del attrs_notext["text"]
+        self.assertTrue(math.isnan(get_attrs(elem_notext)["text"]))
         self.assertEqual(
-            attrs_notext,
+            {k: v for k, v in get_attrs(elem_notext).items() if k != "text"},
             {"tag": "div", "type": "act", "n": "1"},
         )
         elem_text = self.soup.find("w")
-        attrs_text = get_attrs(elem_text)
         self.assertEqual(
-            attrs_text,
+            get_attrs(elem_text),
             {"tag": "w", "xml:id": "fs-mnd-0000010", "text": "ACT"},
         )
