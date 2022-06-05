@@ -1,9 +1,16 @@
 import math
 from unittest import TestCase
 
-from bs4 import BeautifulSoup
-
-from hyperbard.preprocessing import get_attrs, get_body, get_soup
+from hyperbard.preprocessing import (
+    get_attrs,
+    get_body,
+    get_soup,
+    is_descendant_of_redundant_element,
+    is_leaf,
+    is_navigable_string,
+    is_redundant_element,
+    keep_elem_in_xml_df,
+)
 
 
 class PreprocessingTest(TestCase):
@@ -151,3 +158,37 @@ class PreprocessingTest(TestCase):
             get_attrs(elem_text),
             {"tag": "w", "xml:id": "fs-mnd-0000010", "text": "ACT"},
         )
+
+    def test_is_descendant_of_redundant_element(self):
+        elem_descendant_of_redundant = self.soup.find("w")
+        elem_no_descendant_of_redundant = self.soup.find("div")
+        self.assertTrue(
+            is_descendant_of_redundant_element(elem_descendant_of_redundant)
+        )
+        self.assertFalse(
+            is_descendant_of_redundant_element(elem_no_descendant_of_redundant)
+        )
+
+    def test_is_leaf(self):
+        elem_leaf = self.soup.find("w")
+        elem_nonleaf = self.soup.find("div")
+        self.assertTrue(is_leaf(elem_leaf))
+        self.assertFalse(is_leaf(elem_nonleaf))
+
+    def test_is_navigable_string(self):
+        elem_no_navigable_string = self.soup.find("w")
+        elem_navigable_string = self.soup.find("w").contents[0]
+        self.assertFalse(is_navigable_string(elem_no_navigable_string))
+        self.assertTrue(is_navigable_string(elem_navigable_string))
+
+    def test_is_redundant_element(self):
+        elem_reduntant = self.soup.find("head")
+        elem_nonredundant = self.soup.find("div")
+        self.assertTrue(is_redundant_element(elem_reduntant))
+        self.assertFalse(is_redundant_element(elem_nonredundant))
+
+    def test_keep_elem_in_xml_df(self):
+        elem_keep = self.soup.find("div")
+        elem_nokeep = self.soup.find("head")
+        self.assertTrue(keep_elem_in_xml_df(elem_keep))
+        self.assertFalse(keep_elem_in_xml_df(elem_nokeep))

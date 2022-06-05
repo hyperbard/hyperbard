@@ -1,6 +1,8 @@
+from typing import Union
+
 import pandas as pd
 from bs4 import BeautifulSoup
-from bs4.element import NavigableString
+from bs4.element import NavigableString, PageElement, Tag
 
 
 def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
@@ -16,7 +18,7 @@ def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
     return soup
 
 
-def get_body(soup):
+def get_body(soup: BeautifulSoup) -> Tag:
     """
     Extract the text body from an appropriately shaped BeautifulSoup object.
 
@@ -31,35 +33,79 @@ def get_body(soup):
     return bodies[0]
 
 
-def get_attrs(elem):
+def is_leaf(elem: Tag) -> bool:
     """
+    Check if a bs4 Tag element has at most one child, i.e., if it is a leaf in the Tag tree
+    (single children are NavigableStrings)
 
-    :param elem:
-    :return:
+    :param elem: bs4 Tag element
+    :return: If the element has at most one child
     """
-    if len(elem.contents) <= 1:
+    return len(elem.contents) <= 1
+
+
+def get_attrs(elem: Tag) -> dict:
+    """
+    Get the attributes of a bs4 Tag element, plus its tag name and - if the element is a leaf - its text,
+    as a dictionary.
+
+    :param elem: bs4 Tag element
+    :return: Dictionary containing the element's tag name, attributes, and - if the element is a leaf - text
+    """
+    if is_leaf(elem):
         return {"tag": elem.name, **elem.attrs, "text": elem.text}
     else:
         return {"tag": elem.name, **elem.attrs, "text": float("nan")}
 
 
-def keep_elem(elem):
+def is_navigable_string(elem: PageElement) -> bool:
+    return type(elem) == NavigableString
+
+
+def is_redundant_element(elem: Union[Tag, NavigableString]) -> bool:
+    """
+    Check if an element is redundant, i.e., it is (contained in) a "header" or
+    a "speaker" element, because the information contained in "head" and "speaker" elements
+    and their descendants is already encoded in XML attributes of other tags.
+
+    :param elem: bs4 element
+    :return: If the element is redundant
+    """
+    return elem.name in ["head", "speaker"]
+
+
+def is_descendant_of_redundant_element(elem: Union[Tag, NavigableString]) -> bool:
+    parent_names = set([x.name for x in elem.parents])
+    return bool({"head", "speaker"}.intersection(parent_names))
+
+
+def keep_elem_in_xml_df(elem: Union[Tag, NavigableString]) -> bool:
+    """
+    Decide whether to keep an bs4 element in the XML dataframe produced as the
+    raw preprocessed data.
+
+    :param elem: bs4 element from a BeautifulSoup object
+    :return: Whether to keep the element
+    """
     return (
-        type(elem) != NavigableString
-        and elem.name not in ["head", "speaker"]
-        and not {"head", "speaker"}.intersection(set([x.name for x in elem.parents]))
-    )  # filters out head and speaker words as info already in div attributes
-
-
-def get_xml_df(body):
-    """
-
-    :param body:
-    :return:
-    """
-    return pd.DataFrame.from_records(
-        [get_attrs(elem) for elem in body.descendants if keep_elem(elem)]
+        not is_navigable_string(elem)
+        and not is_redundant_element(elem)
+        and not is_descendant_of_redundant_element(elem)
     )
+
+
+def get_xml_df(body: Tag) -> pd.DataFrame:
+    """
+    Construct a pd.DataFrame from the non-redundant XML tags of a TEI-encoded
+    BeautifulSoup object.
+
+    :param body: Body of a TEI-encoded BeautifulSoup object
+    :return: pd.DataFrame containing all non-redundant XML tags with names, attributes, and text
+    """
+    records = [
+        get_attrs(elem) for elem in body.descendants if keep_elem_in_xml_df(elem)
+    ]
+    return pd.DataFrame.from_records(records)
 
 
 def set_act(df):
