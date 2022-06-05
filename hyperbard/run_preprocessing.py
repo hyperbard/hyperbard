@@ -1,4 +1,14 @@
 import os
+import sys
+
+this_dir = os.path.dirname(__file__)
+sys.path.extend(
+    [
+        os.path.realpath(os.path.join(this_dir, "..")),
+        os.path.realpath(os.path.join(this_dir, "..", "hyperbard")),
+    ]
+)
+
 from glob import glob
 from multiprocessing import Pool, cpu_count
 
