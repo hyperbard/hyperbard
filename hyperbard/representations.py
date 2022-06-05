@@ -4,7 +4,7 @@ import hypernetx as hnx
 import networkx as nx
 import pandas as pd
 
-from hyperbard.utils import character_string_to_sorted_list, join_strings
+from hyperbard.utils import character_string_to_sorted_list, sort_join_strings
 
 
 def get_weighted_multigraph(df: pd.DataFrame, groupby: list):
@@ -13,7 +13,7 @@ def get_weighted_multigraph(df: pd.DataFrame, groupby: list):
     groupby = ["act", "scene", "stagegroup"] -> one edge per act, scene, and stagegroup
     multi-edges are kept, with n_tokens or n_lines as potential weights
     """
-    agg = dict(onstage=join_strings, n_tokens=sum, n_lines=sum)
+    agg = dict(onstage=sort_join_strings, n_tokens=sum, n_lines=sum)
     df_aggregated = df.groupby(groupby).agg(agg).reset_index()
     df_aggregated["onstage"] = df_aggregated["onstage"].map(
         character_string_to_sorted_list
@@ -35,7 +35,7 @@ def get_bipartite_graph(df: pd.DataFrame, groupby: list):
     groupby = ["act", "scene", "stagegroup", "setting", "speaker"] ->
     n_tokens or n_lines are potential weights
     """
-    agg = dict(onstage=join_strings, n_tokens=sum, n_lines=sum)
+    agg = dict(onstage=sort_join_strings, n_tokens=sum, n_lines=sum)
     df_aggregated = df.groupby(groupby).agg(agg).reset_index()
     df_aggregated["onstage"] = df_aggregated["onstage"].map(
         character_string_to_sorted_list
@@ -116,7 +116,7 @@ def get_hypergraph(df: pd.DataFrame, groupby: list):
     """
     df_grouped = (
         df.groupby(groupby)
-        .agg({"n_tokens": "sum", "n_lines": "sum", "onstage": join_strings})
+        .agg({"n_tokens": "sum", "n_lines": "sum", "onstage": sort_join_strings})
         .reset_index()
     )
     df_grouped["onstage"] = df_grouped["onstage"].map(character_string_to_sorted_list)

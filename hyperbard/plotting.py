@@ -9,7 +9,7 @@ from cycler import cycler
 
 from hyperbard.ranking import get_character_ranking_df
 from hyperbard.representations import get_hypergraph
-from hyperbard.utils import character_string_to_sorted_list, split_identifier
+from hyperbard.utils import character_string_to_sorted_list, get_name_from_identifier
 
 sns.set_style("whitegrid")
 
@@ -47,7 +47,9 @@ def plot_character_rankings(df, save_path=None):
         alpha=0.5,
     )
     ax.invert_yaxis()
-    labels = [split_identifier(elem.get_text()) for elem in ax.legend().get_texts()]
+    labels = [
+        get_name_from_identifier(elem.get_text()) for elem in ax.legend().get_texts()
+    ]
     plt.legend(loc=(1, 0), labels=labels)
     plt.tight_layout()
     if save_path is not None:
@@ -165,7 +167,7 @@ def draw_hypergraph(nH, node_radius, tax, layout_kwargs):
     hnx.draw(
         nH,
         ax=tax,
-        node_labels={n.uid: split_identifier(n.uid) for n in nH.nodes()},
+        node_labels={n.uid: get_name_from_identifier(n.uid) for n in nH.nodes()},
         node_radius=node_radius,
         with_edge_labels=False,
         edges_kwargs=dict(
