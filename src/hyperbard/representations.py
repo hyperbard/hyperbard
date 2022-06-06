@@ -31,9 +31,35 @@ def get_weighted_multigraph(df: pd.DataFrame, groupby: list) -> nx.MultiGraph:
         mG.add_edges_from(
             list(combinations(row["onstage"], 2)),
             **{k: v for k, v in row.items() if k != "onstage"},
-            scene_index=idx,
+            scene_index=idx + 1,
         )
     return mG
+
+
+def get_count_weighted_graph(df: pd.DataFrame, groupby: list):
+    """
+    Create a count-weighted graph from an aggregated dataframe,
+    with edges resolved at the level given by the groupby argument,
+    where multiedges are _not_ kept, and counts are potential weights.
+
+    Representations: ce-{act,group}-{b,w}
+
+    :param groupby: ["act", "scene"] -> one edge per act and scene, ["act", "scene", "stagegroup"] -> one edge per act, scene, and stagegroup
+    :return: nx.Graph corresponding to the specified groupby
+    """
+    mG = get_weighted_multigraph(df, groupby)
+    G = nx.Graph()
+    for (u, v, k) in mG.edges(keys=True):
+        if (u, v) in G.edges():
+            G.edges[u, v]["count"] += 1
+        else:
+            G.add_edge(u, v, count=1)
+    return G
+
+
+def format_text_unit_node(elem):
+    index_to_digits = {0: 1, 1: 2, 2: 4}
+    return ".".join([str(e).zfill(index_to_digits[idx]) for idx, e in enumerate(elem)])
 
 
 def get_bipartite_graph(
@@ -55,6 +81,12 @@ def get_bipartite_graph(
     df_aggregated["onstage"] = df_aggregated["onstage"].map(
         character_string_to_sorted_list
     )
+    text_units = [
+        format_text_unit_node(elem)
+        for elem in zip(
+            *[df_aggregated[c].values for c in df_aggregated[groupby[:3]].columns]
+        )
+    ]
     if groupby == ["act", "scene", "stagegroup", "setting", "speaker"]:
         # TODO: lot's of modeling decisions here - document properly!
         # TODO se-speech-wd
@@ -62,9 +94,6 @@ def get_bipartite_graph(
             character_string_to_sorted_list
         )
         G = nx.MultiDiGraph()
-        text_units = list(
-            zip(*[df_aggregated[c].values for c in df_aggregated[groupby[:3]].columns])
-        )
         G.add_nodes_from(text_units, node_type="text_unit")
         characters = [elem for sublist in df_aggregated.onstage for elem in sublist]
         G.add_nodes_from(characters, node_type="character")
@@ -88,9 +117,6 @@ def get_bipartite_graph(
             )
     else:
         G = nx.Graph()
-        text_units = list(
-            zip(*[df_aggregated[c].values for c in df_aggregated[groupby].columns])
-        )
         G.add_nodes_from(
             [elem for sublist in df_aggregated.onstage for elem in sublist],
             node_type="character",
@@ -104,27 +130,6 @@ def get_bipartite_graph(
                 n_tokens=row["n_tokens"],
             )
 
-    return G
-
-
-def get_count_weighted_graph(df: pd.DataFrame, groupby: list):
-    """
-    Create a count-weighted graph from an aggregated dataframe,
-    with edges resolved at the level given by the groupby argument,
-    where multiedges are _not_ kept, and counts are potential weights.
-
-    Representations: ce-{act,group}-{b,w}
-
-    :param groupby: ["act", "scene"] -> one edge per act and scene, ["act", "scene", "stagegroup"] -> one edge per act, scene, and stagegroup
-    :return: nx.Graph corresponding to the specified groupby
-    """
-    mG = get_weighted_multigraph(df, groupby)
-    G = nx.Graph()
-    for (u, v, k) in mG.edges(keys=True):
-        if (u, v) in G.edges():
-            G.edges[u, v]["count"] += 1
-        else:
-            G.add_edge(u, v, count=1)
     return G
 
 

@@ -203,7 +203,7 @@ class XMLTestCase(TestCase):
             StringIO(
                 """
 act,scene,stagegroup,stagegroup_raw,setting,onstage,speaker,n_lines,n_tokens
-1,1,1,1,1,#ATTENDANTS_MND #Hippolyta_MND #Philostrate_MND #Theseus_MND,#Theseus_MND,6,43
+1,1,1,1,1,#ATTENDANTS_MND #Philostrate_MND #Theseus_MND,#Theseus_MND,6,43
 1,1,2,2,2,#ATTENDANTS_MND #Hippolyta_MND #Philostrate_MND #Theseus_MND,#Hippolyta_MND,5,35
 1,2,3,3,3,#ATTENDANTS_MND #Demetrius_MND #Egeus_MND #Hermia_MND #Hippolyta_MND #Lysander_MND #Theseus_MND,#Egeus_MND,1,6
 1,2,3,3,4,#ATTENDANTS_MND #Demetrius_MND #Egeus_MND #Hermia_MND #Hippolyta_MND #Lysander_MND #Theseus_MND,#Theseus_MND,1,8

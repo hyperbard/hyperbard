@@ -1,32 +1,18 @@
 import os
+from collections import OrderedDict
 from glob import glob
-from multiprocessing import Pool, cpu_count
 
 import networkx as nx
 import pandas as pd
 from statics import DATA_PATH, GRAPHDATA_PATH
 
-from hyperbard.representations import (
-    get_bipartite_graph,
-    get_count_weighted_graph,
-    get_hypergraph,
-    get_weighted_multigraph,
-)
+from hyperbard.representations import get_bipartite_graph, get_weighted_multigraph
 from hyperbard.utils import get_filename_base
-
-
-def get_node_string(node):
-    if type(node) == str:
-        return node
-    elif type(node) == tuple:
-        return ".".join(str(elem) for elem in node)
-    else:
-        raise ValueError(f"Unexpected node type: {type(node)}!")
 
 
 def node_dataframe(G):
     return pd.DataFrame.from_records(
-        [{"node": get_node_string(n), **dict(data)} for n, data in G.nodes(data=True)]
+        [{"node": n, **dict(data)} for n, data in G.nodes(data=True)]
     ).sort_values("node")
 
 
@@ -37,8 +23,8 @@ def save_graph(G, representation, path):
         edges = pd.DataFrame.from_records(
             [
                 {
-                    "node1": get_node_string(u),
-                    "node2": get_node_string(v),
+                    "node1": u,
+                    "node2": v,
                     "key": key,
                     **dict(data),
                 }
@@ -50,7 +36,7 @@ def save_graph(G, representation, path):
         nodes = node_dataframe(G)
         edges = pd.DataFrame.from_records(
             [
-                {"node1": get_node_string(u), "node2": get_node_string(v), **dict(data)}
+                {"node1": u, "node2": v, **dict(data)}
                 for u, v, data in G.edges(data=True)
             ]
         ).sort_values(["node2", "node1"])
@@ -67,25 +53,30 @@ def handle_file(file):
     print(file_base)
     df = pd.read_csv(file)
 
-    expansions = {
-        "ce-scene-mw": {
-            "groupby": ["act", "scene"],
-            "constructor": get_weighted_multigraph,
-        },
-        "ce-group-mw": {
-            "groupby": ["act", "scene", "stagegroup"],
-            "constructor": get_weighted_multigraph,
-        },
-        "se-scene-w": {"groupby": ["act", "scene"], "constructor": get_bipartite_graph},
-        "se-group-w": {
-            "groupby": ["act", "scene", "stagegroup"],
-            "constructor": get_bipartite_graph,
-        },
-        "se-speech-mwd": {
-            "groupby": ["act", "scene", "stagegroup", "setting", "speaker"],
-            "constructor": get_bipartite_graph,
-        },
-    }
+    expansions = OrderedDict(
+        {
+            "ce-scene-mw": {
+                "groupby": ["act", "scene"],
+                "constructor": get_weighted_multigraph,
+            },
+            "ce-group-mw": {
+                "groupby": ["act", "scene", "stagegroup"],
+                "constructor": get_weighted_multigraph,
+            },
+            "se-scene-w": {
+                "groupby": ["act", "scene"],
+                "constructor": get_bipartite_graph,
+            },
+            "se-group-w": {
+                "groupby": ["act", "scene", "stagegroup"],
+                "constructor": get_bipartite_graph,
+            },
+            "se-speech-mwd": {
+                "groupby": ["act", "scene", "stagegroup", "setting", "speaker"],
+                "constructor": get_bipartite_graph,
+            },
+        }
+    )
     for representation, parameters in expansions.items():
         G = parameters["constructor"](df, parameters["groupby"])
         save_graph(G, representation, f"{GRAPHDATA_PATH}/{file_base}")
