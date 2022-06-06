@@ -6,7 +6,11 @@ import networkx as nx
 import pandas as pd
 from statics import DATA_PATH, GRAPHDATA_PATH
 
-from hyperbard.representations import get_bipartite_graph, get_weighted_multigraph
+from hyperbard.representations import (
+    get_bipartite_graph,
+    get_count_weighted_graph,
+    get_weighted_multigraph,
+)
 from hyperbard.utils import get_filename_base
 
 
@@ -16,11 +20,9 @@ def node_dataframe(G):
     ).sort_values("node")
 
 
-def save_graph(G, representation, path):
-    if type(G) == nx.MultiGraph:  # clique expansions
-        representation_for_nodes = representation.split("-")[0]
-        nodes = node_dataframe(G)
-        edges = pd.DataFrame.from_records(
+def edge_dataframe(G):
+    if type(G) == nx.MultiGraph:
+        return pd.DataFrame.from_records(
             [
                 {
                     "node1": u,
@@ -30,20 +32,46 @@ def save_graph(G, representation, path):
                 }
                 for u, v, key, data in G.edges(keys=True, data=True)
             ]
-        ).sort_values(["scene_index", "node1", "node2", "key"])
-    elif type(G) == nx.Graph:  # simple star expansions
-        representation_for_nodes = "-".join(representation.split("-")[:-1])
-        nodes = node_dataframe(G)
-        edges = pd.DataFrame.from_records(
+        ).sort_values(["edge_index", "node1", "node2", "key"])
+    elif type(G) == nx.Graph:
+        df = pd.DataFrame.from_records(
             [
-                {"node1": u, "node2": v, **dict(data)}
+                {
+                    "node1": u,
+                    "node2": v,
+                    **dict(data),
+                }
                 for u, v, data in G.edges(data=True)
             ]
-        ).sort_values(["node2", "node1"])
-    elif type(G) == nx.MultiDiGraph:  # speech act star expansion
-        return  # TODO
+        )
+        if "edge_index" in df:
+            return df.sort_values(["edge_index", "node1", "node2"])
+        elif "count" in df:
+            return df.sort_values(
+                ["node1", "node2", "count"], ascending=[True, True, False]
+            )
+        else:
+            return df.sort_values(["node1", "node2"])
+
+
+def save_graph(G, representation, path):
+    if representation.startswith("ce"):  # clique expansions
+        representation_for_nodes = representation.split("-")[0]
+        nodes = node_dataframe(G)
+        edges = edge_dataframe(G)
+    elif representation.startswith("se"):  # star expansions
+        if type(G) == nx.Graph:
+            representation_for_nodes = "-".join(representation.split("-")[:-1])
+            nodes = node_dataframe(G)
+            edges = edge_dataframe(G).sort_values(
+                ["node2", "node1"]
+            )  # node2 is the play part, so sorting by that first is more intuitive
+        elif type(G) == nx.MultiDiGraph:  # speech act star expansion
+            return  # TODO
+    elif representation.startswith("hg"):  # TODO hgs
+        return
     else:
-        return  # TODO hgs
+        raise NotImplementedError(f"Unknown representation: {representation}")
     nodes.to_csv(f"{path}_{representation_for_nodes}.nodes.csv", index=False)
     edges.to_csv(f"{path}_{representation}.edges.csv", index=False)
 
@@ -62,6 +90,14 @@ def handle_file(file):
             "ce-group-mw": {
                 "groupby": ["act", "scene", "stagegroup"],
                 "constructor": get_weighted_multigraph,
+            },
+            "ce-scene-w": {
+                "groupby": ["act", "scene"],
+                "constructor": get_count_weighted_graph,
+            },
+            "ce-group-w": {
+                "groupby": ["act", "scene", "stagegroup"],
+                "constructor": get_count_weighted_graph,
             },
             "se-scene-w": {
                 "groupby": ["act", "scene"],

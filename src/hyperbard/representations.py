@@ -31,7 +31,7 @@ def get_weighted_multigraph(df: pd.DataFrame, groupby: list) -> nx.MultiGraph:
         mG.add_edges_from(
             list(combinations(row["onstage"], 2)),
             **{k: v for k, v in row.items() if k != "onstage"},
-            scene_index=idx + 1,
+            edge_index=idx + 1,
         )
     return mG
 
@@ -98,7 +98,7 @@ def get_bipartite_graph(
         characters = [elem for sublist in df_aggregated.onstage for elem in sublist]
         G.add_nodes_from(characters, node_type="character")
         for idx, row in df_aggregated.iterrows():
-            row_node = tuple(row[x] for x in groupby[:3])
+            row_node = format_text_unit_node(tuple(row[x] for x in groupby[:3]))
             row_speaker_list = row["speaker"]
             row_lines = row["n_lines"]
             row_tokens = row["n_tokens"]
@@ -123,7 +123,7 @@ def get_bipartite_graph(
         )
         G.add_nodes_from(text_units, node_type="text_unit")
         for idx, row in df_aggregated.iterrows():
-            row_node = tuple(row[x] for x in groupby)
+            row_node = format_text_unit_node(tuple(row[x] for x in groupby))
             G.add_edges_from(
                 [(row_node, character) for character in row["onstage"]],
                 n_lines=row["n_lines"],

@@ -47,3 +47,13 @@ class RepresentationsTest(XMLTestCase):
         self.assertEqual(
             G.get_edge_data("#ATTENDANTS_MND", "#Hippolyta_MND")["count"], 3
         )
+
+    def test_get_bipartite_graph(self):
+        groupby = ["act", "scene"]
+        G = get_bipartite_graph(self.toy_agg_df, groupby)
+        self.assertEqual(G.number_of_nodes(), 11)
+        self.assertEqual(G.number_of_edges(), 18)
+        groupby = ["act", "scene", "stagegroup"]
+        G = get_bipartite_graph(self.toy_agg_df, groupby)
+        self.assertEqual(G.number_of_nodes(), 12)
+        self.assertEqual(G.number_of_edges(), 21)
