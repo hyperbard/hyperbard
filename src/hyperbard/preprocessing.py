@@ -230,15 +230,15 @@ def set_onstage(df: pd.DataFrame) -> None:
 
 
 def set_stagegroup(df: pd.DataFrame) -> None:
-    df["stagegroup"] = float("nan")
+    df["stagegroup_raw"] = float("nan")
     stage_n = 0
     for idx1, (os1, os2) in enumerate(zip(df.onstage[:-1], df.shift(-1).onstage)):
         if idx1 == 0:
-            df.at[idx1, "stagegroup"] = stage_n
+            df.at[idx1, "stagegroup_raw"] = stage_n
         if os1 != os2:
             stage_n += 1
-        df.at[idx1 + 1, "stagegroup"] = stage_n
-    df.stagegroup = df.stagegroup.astype(int)
+        df.at[idx1 + 1, "stagegroup_raw"] = stage_n
+    df.stagegroup_raw = df.stagegroup_raw.astype(int)
 
 
 def get_who_attributes(elem: Tag) -> Union[str, float]:
@@ -263,7 +263,7 @@ def set_speaker(df: pd.DataFrame, body: Tag) -> None:
         df.loc[df["xml:id"].map(lambda x: x in descendants), "speaker"] = speaker
     df.loc[df.query("tag == 'sp'").index, "speaker"] = df.query("tag == 'sp'")[
         "who"
-    ].map(sort_join_strings)
+    ].map(lambda val: sort_join_strings(val) if not pd.isna(val) else val)
     df.speaker = df.speaker.apply(
         lambda sp: sort_join_strings(character_string_to_sorted_list(sp))
         if not pd.isna(sp)
@@ -299,7 +299,7 @@ def get_aggregated(df: pd.DataFrame) -> pd.DataFrame:
     :return:
     """
     selector = "tag == 'w' and not n.fillna('').str.startswith('SD')"
-    groupby = ["act", "scene", "stagegroup", "onstage", "speaker", "n"]
+    groupby = ["act", "scene", "stagegroup_raw", "onstage", "speaker", "n"]
     aggregated = (
         df.query(selector)
         .groupby(groupby)
@@ -312,7 +312,7 @@ def get_aggregated(df: pd.DataFrame) -> pd.DataFrame:
 
 def set_setting(aggregated):
     aggregated["setting"] = float("nan")
-    setting_n = 1  # first non-empty stagegroup is 1, too -> consistency
+    setting_n = 1  # first non-empty stagegroup_raw is 1, too -> consistency
     aggregated.at[0, "setting"] = setting_n
     for idx, (os1, s1, os2, s2) in enumerate(
         zip(
@@ -331,7 +331,7 @@ def set_setting(aggregated):
 def get_grouped_df(aggregated):
     aggregated_grouped = (
         aggregated.groupby(
-            ["stagegroup", "onstage", "speaker", "setting", "act", "scene"]
+            ["stagegroup_raw", "onstage", "speaker", "setting", "act", "scene"]
         )
         .agg(dict(n_tokens="sum", n="count"))
         .reset_index()
@@ -341,17 +341,17 @@ def get_grouped_df(aggregated):
     stagegroups_renumbered = {
         elem: idx
         for idx, elem in enumerate(
-            sorted(aggregated_grouped.stagegroup.unique()), start=1
+            sorted(aggregated_grouped.stagegroup_raw.unique()), start=1
         )
     }
-    aggregated_grouped["stagegroup_renumbered"] = aggregated_grouped.stagegroup.map(
+    aggregated_grouped["stagegroup"] = aggregated_grouped.stagegroup_raw.map(
         lambda sg: stagegroups_renumbered[sg]
     )
     columns_ordered = [
         "act",
         "scene",
         "stagegroup",
-        "stagegroup_renumbered",
+        "stagegroup_raw",
         "setting",
         "onstage",
         "speaker",
