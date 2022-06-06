@@ -1,10 +1,14 @@
-from typing import Union
+from typing import List, Union
 
 import pandas as pd
 from bs4 import BeautifulSoup
 from bs4.element import NavigableString, PageElement, Tag
 
-from hyperbard.utils import sort_join_strings, string_to_set
+from hyperbard.utils import (
+    character_string_to_sorted_list,
+    sort_join_strings,
+    string_to_set,
+)
 
 
 def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
@@ -23,11 +27,12 @@ def get_soup(file: str, parser: str = "lxml-xml") -> BeautifulSoup:
 def get_cast_df(file: str) -> pd.DataFrame:
     soup = get_soup(file)
     cast_items = [item.attrs for item in soup.find_all("castItem")]
-    return (
+    cast_df = (
         pd.DataFrame.from_records(cast_items)
         .sort_values("xml:id")
         .reset_index(drop=True)
     )
+    return cast_df
 
 
 def get_body(soup: BeautifulSoup) -> Tag:
@@ -236,17 +241,19 @@ def set_stagegroup(df: pd.DataFrame) -> None:
     df.stagegroup = df.stagegroup.astype(int)
 
 
-def get_who_attributes(elem):
+def get_who_attributes(elem: Tag) -> Union[str, float]:
     # the nan is relevant for sp tags of songs without who annotations
     return elem.attrs.get("who", float("nan"))
 
 
-def get_descendants_ids(elem):
+def get_descendants_ids(elem: Tag) -> List[str]:
     descendants = [e for e in elem.descendants if not is_navigable_string(e)]
     return [e.attrs["xml:id"] for e in descendants if e.attrs.get("n")]
 
 
-def set_speaker(df, body):
+def set_speaker(df: pd.DataFrame, body: Tag) -> None:
+    # TODO decide if the "sp" tag itself should have the speaker who annotated
+    # affects .raw df but not .agg
     speech_tags = body.find_all("sp")
     speaker_helper = zip(
         map(get_who_attributes, speech_tags),
@@ -256,7 +263,9 @@ def set_speaker(df, body):
     for speaker, descendants in speaker_helper:
         df.loc[df["xml:id"].map(lambda x: x in descendants), "speaker"] = speaker
     df.speaker = df.speaker.apply(
-        lambda sp: " ".join(sorted(set(sp.split()))) if not pd.isna(sp) else sp
+        lambda sp: sort_join_strings(character_string_to_sorted_list(sp))
+        if not pd.isna(sp)
+        else sp
     )
 
 

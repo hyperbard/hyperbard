@@ -5,20 +5,31 @@ from unittest import TestCase
 import pandas as pd
 
 from hyperbard.preprocessing import (
+    get_agg_xml_df,
     get_attrs,
     get_body,
+    get_cast_df,
+    get_descendants_ids,
+    get_grouped_df,
     get_raw_xml_df,
     get_soup,
+    get_who_attributes,
     get_xml_df,
+    has_speaker,
     is_descendant_of_redundant_element,
     is_entrance,
     is_exit,
     is_leaf,
     is_navigable_string,
+    is_new_act,
     is_redundant_element,
     keep_elem_in_xml_df,
     set_act,
+    set_onstage,
     set_scene,
+    set_setting,
+    set_speaker,
+    set_stagegroup,
 )
 
 
@@ -147,15 +158,83 @@ class PreprocessingTest(TestCase):
   </text>
 </TEI>
         """
+        self.toy_cast_file = "toy_cast.xml"
+        self.toy_cast_text = """
+        <castList xmlns="http://www.tei-c.org/ns/1.0">
+        <castGroup>
+          <castGroup>
+            <head>four lovers</head>
+            <castItem xml:id="Hermia_MND">
+              <role>
+                <name>Hermia</name>
+              </role>
+            </castItem>
+            <castItem xml:id="Lysander_MND">
+              <role>
+                <name>Lysander</name>
+              </role>
+            </castItem>
+            <castItem xml:id="Helena_MND">
+              <role>
+                <name>Helena</name>
+              </role>
+            </castItem>
+            <castItem xml:id="Demetrius_MND">
+              <role>
+                <name>Demetrius</name>
+              </role>
+            </castItem>
+          </castGroup>
+        </castGroup>
+        <castGroup>
+          <castItem xml:id="Theseus_MND">
+            <role>
+              <name>Theseus</name>
+            </role>
+            <roleDesc>duke of Athens</roleDesc>
+          </castItem>
+          <castItem xml:id="Hippolyta_MND">
+            <role>
+              <name>Hippolyta</name>
+            </role>
+            <roleDesc>queen of the Amazons</roleDesc>
+          </castItem>
+          <castItem xml:id="Egeus_MND">
+            <role>
+              <name>Egeus</name>
+            </role>
+            <roleDesc>father to Hermia</roleDesc>
+          </castItem>
+          <castItem xml:id="Philostrate_MND">
+            <role>
+              <name>Philostrate</name>
+            </role>
+            <roleDesc>master of the revels to Theseus</roleDesc>
+          </castItem>
+        </castGroup>
+        <castGroup>
+          <head>Lords and Attendants on Theseus and Hippolyta</head>
+          <castItem xml:id="ATTENDANTS_MND"/>
+          <castItem xml:id="ATTENDANTS.0.1_MND" corresp="#ATTENDANTS_MND"/>
+          <castItem xml:id="ATTENDANTS.0.2_MND" corresp="#ATTENDANTS_MND"/>
+        </castGroup>
+        </castList>
+        """
         with open(self.toy_xml_file, "w") as f:
             f.write(self.toy_xml_text)
         self.soup = get_soup(self.toy_xml_file)
+        self.xml_df = get_xml_df(get_body(self.soup))
+        with open(self.toy_cast_file, "w") as f:
+            f.write(self.toy_cast_text)
 
     def tearDown(self) -> None:
         if os.path.exists(self.toy_xml_file):
             os.remove(self.toy_xml_file)
+        if os.path.exists(self.toy_cast_file):
+            os.remove(self.toy_cast_file)
 
     def test_get_annotated_xml_df(self):
+        # TODO Test
         df = get_raw_xml_df(self.toy_xml_file)
         df
 
@@ -182,6 +261,16 @@ class PreprocessingTest(TestCase):
             get_soup(self.toy_xml_file).find_all("w")[-1].get_text(), "Demetrius"
         )
 
+    def test_get_who_attributes(self):
+        self.assertEqual(get_who_attributes(self.soup.find("sp")), "#Theseus_MND")
+        self.assertTrue(math.isnan(get_who_attributes(self.soup.find("w"))))
+
+    def test_get_cast_df(self):
+        cast_df = get_cast_df(self.toy_cast_file)
+        self.assertEqual(len(cast_df), 11)
+        self.assertEqual(cast_df.at[0, "xml:id"], "ATTENDANTS.0.1_MND")
+        self.assertEqual(cast_df.at[0, "corresp"], "#ATTENDANTS_MND")
+
     def test_get_xml_df(self):
         self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'l'")), 3)
         self.assertEqual(
@@ -189,6 +278,10 @@ class PreprocessingTest(TestCase):
         )
         self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'sp'")), 2)
         self.assertEqual(len(get_xml_df(get_body(self.soup)).query("tag == 'w'")), 35)
+
+    def test_has_speaker(self):
+        self.assertTrue(has_speaker(self.xml_df.query("tag == 'sp'").iloc[0]))
+        self.assertFalse(has_speaker(self.xml_df.query("tag == 'w'").iloc[0]))
 
     def test_is_descendant_of_redundant_element(self):
         elem_descendant_of_redundant = self.soup.find("w")
@@ -201,13 +294,15 @@ class PreprocessingTest(TestCase):
         )
 
     def test_is_entrance(self):
-        df = get_xml_df(get_body(self.soup))
-        for idx, row in df.query("tag == 'stage' and type == 'entrance'").iterrows():
+        for idx, row in self.xml_df.query(
+            "tag == 'stage' and type == 'entrance'"
+        ).iterrows():
             self.assertTrue(is_entrance(row))
 
     def test_is_exit(self):
-        df = get_xml_df(get_body(self.soup))
-        for idx, row in df.query("tag == 'stage' and type == 'exit'").iterrows():
+        for idx, row in self.xml_df.query(
+            "tag == 'stage' and type == 'exit'"
+        ).iterrows():
             self.assertTrue(is_exit(row))
 
     def test_is_leaf(self):
@@ -222,6 +317,11 @@ class PreprocessingTest(TestCase):
         self.assertFalse(is_navigable_string(elem_no_navigable_string))
         self.assertTrue(is_navigable_string(elem_navigable_string))
 
+    def test_is_new_act(self):
+        set_act(self.xml_df)
+        self.assertTrue(is_new_act(self.xml_df.query("tag == 'sp'").iloc[0], 0))
+        self.assertFalse(is_new_act(self.xml_df.query("tag == 'sp'").iloc[0], 1))
+
     def test_is_redundant_element(self):
         elem_reduntant = self.soup.find("head")
         elem_nonredundant = self.soup.find("div")
@@ -235,15 +335,36 @@ class PreprocessingTest(TestCase):
         self.assertFalse(keep_elem_in_xml_df(elem_nokeep))
 
     def test_set_act(self):
-        df = get_xml_df(get_body(self.soup))
-        set_act(df)
-        self.assertListEqual(list(df.query("type == 'act'")["act"]), [1])
-        self.assertFalse(any(pd.isna(x) for x in df["act"]))
+        set_act(self.xml_df)
+        self.assertListEqual(list(self.xml_df.query("type == 'act'")["act"]), [1])
+        self.assertFalse(any(pd.isna(x) for x in self.xml_df["act"]))
         pass
 
+    def test_set_onstage(self):
+        set_act(self.xml_df)
+        set_onstage(self.xml_df)
+        self.assertEqual(
+            self.xml_df.query("tag == 'stage'").iloc[0]["onstage"],
+            "#ATTENDANTS_MND #Hippolyta_MND #Philostrate_MND #Theseus_MND",
+        )
+
     def test_set_scene(self):
-        df = get_xml_df(get_body(self.soup))
-        set_scene(df)
-        self.assertTrue(set(df.query("type == 'act'")["scene"]) == {0})
-        self.assertFalse(0 in set(df.query("type != 'act'")["scene"]))
-        self.assertFalse(any(pd.isna(x) for x in df["scene"]))
+        set_scene(self.xml_df)
+        self.assertTrue(set(self.xml_df.query("type == 'act'")["scene"]) == {0})
+        self.assertFalse(0 in set(self.xml_df.query("type != 'act'")["scene"]))
+        self.assertFalse(any(pd.isna(x) for x in self.xml_df["scene"]))
+
+    def test_set_speaker(self):
+        set_speaker(self.xml_df, get_body(self.soup))
+        # TODO test on 'sp' tag once decided what the desired behavior there is
+        self.assertEqual(
+            self.xml_df.query("tag == 'l'").iloc[0]["speaker"], "#Theseus_MND"
+        )
+        self.assertEqual(
+            self.xml_df[self.xml_df["xml:id"] == "ftln-0012"].iloc[0]["speaker"],
+            "#Theseus_MND",
+        )
+
+    def test_set_stagegroup(self):
+        # TODO test
+        pass
