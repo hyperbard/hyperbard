@@ -87,8 +87,6 @@ def get_bipartite_graph(
         )
     ]
     if groupby == ["act", "scene", "stagegroup", "setting", "speaker"]:
-        # TODO: lot's of modeling decisions here - document properly!
-        # TODO se-speech-wd
         df_aggregated["speaker"] = df_aggregated["speaker"].map(
             character_string_to_sorted_list
         )
@@ -137,3 +135,31 @@ def get_bipartite_graph(
             )
 
     return G
+
+
+def get_weighted_bipartite_graph(df: pd.DataFrame, groupby: list) -> nx.DiGraph:
+    if groupby == ["act", "scene", "stagegroup", "setting", "speaker"]:
+        mG = get_bipartite_graph(df, groupby)
+        edges = dict()
+        for u, v, k, d in mG.edges(keys=True, data=True):
+            if (u, v) not in edges.keys():
+                edges[(u, v)] = {
+                    "n_lines": d["n_lines"],
+                    "n_tokens": d["n_tokens"],
+                    "edge_type": d["edge_type"],
+                }
+            else:
+                edges[(u, v)]["n_lines"] += d["n_lines"]
+                edges[(u, v)]["n_tokens"] += d["n_tokens"]
+        G = nx.DiGraph()
+        G.add_nodes_from(mG.nodes(data=True))
+        for e, data in edges.items():
+            G.add_edge(
+                *e,
+                n_lines=edges[e]["n_lines"],
+                n_tokens=edges[e]["n_tokens"],
+                edge_type=edges[e]["edge_type"],
+            )
+        return G
+    else:
+        raise NotImplementedError(f"Grouping by {groupby} not currently implemented!")

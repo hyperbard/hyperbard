@@ -9,6 +9,7 @@ from statics import DATA_PATH, GRAPHDATA_PATH
 from hyperbard.graph_representations import (
     get_bipartite_graph,
     get_count_weighted_graph,
+    get_weighted_bipartite_graph,
     get_weighted_multigraph,
 )
 from hyperbard.utils import get_filename_base
@@ -45,6 +46,17 @@ def edge_dataframe(G):
                 for u, v, key, data in G.edges(keys=True, data=True)
             ]
         ).sort_values(["edge_index", "source", "target", "key"])
+    elif type(G) == nx.DiGraph:  # directed weighted star expansions
+        return pd.DataFrame.from_records(
+            [
+                {
+                    "source": u,
+                    "target": v,
+                    **dict(data),
+                }
+                for u, v, data in G.edges(data=True)
+            ]
+        ).sort_values(["source", "target"])
     elif type(G) == nx.Graph:
         df = pd.DataFrame.from_records(
             [
@@ -80,8 +92,12 @@ def save_graph(G, representation, path):
             edges = edge_dataframe(G).sort_values(
                 ["node2", "node1"]
             )  # node2 is the play part, so sorting by that first is more intuitive
-        elif type(G) == nx.MultiDiGraph:  # speech act star expansion
+        elif type(G) in [nx.MultiDiGraph, nx.DiGraph]:  # speech act star expansions
             edges = edge_dataframe(G)
+        else:
+            raise NotImplementedError(
+                f"Unknown graph type for given representation: {representation}, {type(G)}"
+            )
     elif representation.startswith("hg"):  # TODO hgs
         return
     else:
@@ -124,6 +140,10 @@ def handle_file(file):
             "se-speech-mwd": {
                 "groupby": ["act", "scene", "stagegroup", "setting", "speaker"],
                 "constructor": get_bipartite_graph,
+            },
+            "se-speech-wd": {
+                "groupby": ["act", "scene", "stagegroup", "setting", "speaker"],
+                "constructor": get_weighted_bipartite_graph,
             },
         }
     )
