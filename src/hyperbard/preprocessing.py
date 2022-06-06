@@ -184,6 +184,10 @@ def is_new_act(row, prev_act):
     return row["act"] != prev_act
 
 
+def is_new_scene(row, prev_scene):
+    return row["scene"] != prev_scene
+
+
 def set_onstage(df: pd.DataFrame) -> None:
     """
     Adds information on who is onstage to a pd.DataFrame created with get_xml_df,
@@ -198,8 +202,15 @@ def set_onstage(df: pd.DataFrame) -> None:
       Rationale: Limit repercussions of encoding "errors" in stage directions,
       found, e.g., when characters are dead or unconscious and not marked as exiting.
       Example: R&J - Juliet not marked up as exiting at the end of Act IV
-    - We do _not_ flush characters when a new scene starts.
-      Rationale: Stage directions in the Folger Shakespeare often use "Exeunt all but",
+    - We _also_ flush characters when a new scene starts.
+      Rationale: The same as for flushing when a new act starts, but somewhat more problematic.
+      Example: R&J - Citizen from Act III, Scene I never marked up as exiting,
+      and thus still onstage in Act III, Scene V (on the balcony!).
+    - Thus, we currently model character presence on stage "conservatively" overall, and
+      we are looking into better character management (not relying on the markup)
+      as a potential improvement.
+    - Flushing when a new scene starts is problematic:
+      Stage directions in the Folger Shakespeare often use "Exeunt all but",
       and as a consequence, only exits are marked up and not entries in the next scene.
       Example: Julius Caesar - Brutus and Cassius not marked up to enter in Act IV Scene III,
       but rather staying from Act IV Scene II (stage directions differ from the Oxford Shakespeare).
@@ -207,15 +218,16 @@ def set_onstage(df: pd.DataFrame) -> None:
       but the problematic instances are very rare. We limit the impact of errors introduced
       by this modeling choice by also ensuring that the speaker is always onstage.
 
-    :param df:
-    :return:
+    :param df: pd.DataFrame created with get_xml_df, with act and scene already annotated
+    :return: None
     """
     df["who"] = df.who.map(string_to_set)
     df["onstage"] = [set()] * len(df)
     for idx, row in df.iterrows():
         prev_onstage = df.at[idx - 1, "onstage"] if idx > 0 else set()
         prev_act = df.at[idx - 1, "act"] if idx > 0 else 0
-        if is_new_act(row, prev_act):
+        prev_scene = df.at[idx - 1, "scene"] if idx > 0 else 0
+        if is_new_act(row, prev_act) or is_new_scene(row, prev_scene):
             prev_onstage = set()
         if is_entrance(row) or has_speaker(row):
             df.at[idx, "onstage"] = prev_onstage | row["who"]
@@ -294,10 +306,14 @@ def get_raw_xml_df(file: str) -> pd.DataFrame:
 
 def get_aggregated(df: pd.DataFrame) -> pd.DataFrame:
     """
+    Given a pd.DataFrame output by get_raw_xml_df, produce a pd.DataFrame
+    containing only spoken words, aggregated by speech acts, i.e., consecutive
+    settings with the same speaker and the same other characters on stage.
 
-    :param df:
-    :return:
+    :param df: pd.DataFrame output by get_raw_xml_df
+    :return: pd.DataFrame containing only spoken words, aggregated by speech acts
     """
+    # select all words (w) that are not stage directions (SD)
     selector = "tag == 'w' and not n.fillna('').str.startswith('SD')"
     groupby = ["act", "scene", "stagegroup_raw", "onstage", "speaker", "n"]
     aggregated = (
@@ -365,13 +381,14 @@ def get_agg_xml_df(df: pd.DataFrame) -> pd.DataFrame:
     """
     Given a pd.DataFrame output by get_raw_xml_df, produce a pd.DataFrame
     containing only spoken words, aggregated by speech acts, i.e., consecutive
-    settings with the same speaker and the same other characters on stage.
+    settings with the same speaker and the same other characters on stage,
+    with full setting annotations.
+
+    Produces a DataFrame object of the shape of the *.agg.csv files.
 
     :param df: pd.DataFrame output by get_raw_xml_df
     :return: pd.DataFrame containing only spoken words, aggregated by speech acts
     """
-    # speaker mentions in text have already been filtered out in a previous step
-    # "n" attributes of stage directions start with SD
     aggregated = get_aggregated(df)
     set_setting(aggregated)
     aggregated_grouped = get_grouped_df(aggregated)
