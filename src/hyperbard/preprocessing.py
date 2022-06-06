@@ -248,12 +248,11 @@ def get_who_attributes(elem: Tag) -> Union[str, float]:
 
 def get_descendants_ids(elem: Tag) -> List[str]:
     descendants = [e for e in elem.descendants if not is_navigable_string(e)]
-    return [e.attrs["xml:id"] for e in descendants if e.attrs.get("n")]
+    descendants_ids = [e.attrs["xml:id"] for e in descendants if e.attrs.get("n")]
+    return descendants_ids
 
 
 def set_speaker(df: pd.DataFrame, body: Tag) -> None:
-    # TODO decide if the "sp" tag itself should have the speaker who annotated
-    # affects .raw df but not .agg
     speech_tags = body.find_all("sp")
     speaker_helper = zip(
         map(get_who_attributes, speech_tags),
@@ -262,6 +261,9 @@ def set_speaker(df: pd.DataFrame, body: Tag) -> None:
     df["speaker"] = float("nan")
     for speaker, descendants in speaker_helper:
         df.loc[df["xml:id"].map(lambda x: x in descendants), "speaker"] = speaker
+    df.loc[df.query("tag == 'sp'").index, "speaker"] = df.query("tag == 'sp'")[
+        "who"
+    ].map(sort_join_strings)
     df.speaker = df.speaker.apply(
         lambda sp: sort_join_strings(character_string_to_sorted_list(sp))
         if not pd.isna(sp)
@@ -269,7 +271,16 @@ def set_speaker(df: pd.DataFrame, body: Tag) -> None:
     )
 
 
-def get_raw_xml_df(file):
+def get_raw_xml_df(file: str) -> pd.DataFrame:
+    """
+    Construct and enrich a pd.DataFrame from the non-redundant XML tags of a
+    TEI-encoded BeautifulSoup object.
+
+    Produces a DataFrame object of the shape of the *.raw.csv files.
+
+    :param file: Path to file
+    :return: pd.DataFrame containing all non-redundant XML tags with names, attributes, text, and annotations
+    """
     soup = get_soup(file)
     body = get_body(soup)
     df = get_xml_df(body)
@@ -279,6 +290,24 @@ def get_raw_xml_df(file):
     set_stagegroup(df)
     set_speaker(df, body)
     return df
+
+
+def get_aggregated(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df:
+    :return:
+    """
+    selector = "tag == 'w' and not n.fillna('').str.startswith('SD')"
+    groupby = ["act", "scene", "stagegroup", "onstage", "speaker", "n"]
+    aggregated = (
+        df.query(selector)
+        .groupby(groupby)
+        .agg({"tag": "count", "xml:id": "min"})
+        .rename(dict(tag="n_tokens"), axis=1)
+        .reset_index()
+    )
+    return aggregated.sort_values("xml:id").reset_index(drop=True)
 
 
 def set_setting(aggregated):
@@ -332,17 +361,18 @@ def get_grouped_df(aggregated):
     return aggregated_grouped[columns_ordered].reset_index(drop=True)
 
 
-def get_agg_xml_df(df):
+def get_agg_xml_df(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Given a pd.DataFrame output by get_raw_xml_df, produce a pd.DataFrame
+    containing only spoken words, aggregated by speech acts, i.e., consecutive
+    settings with the same speaker and the same other characters on stage.
+
+    :param df: pd.DataFrame output by get_raw_xml_df
+    :return: pd.DataFrame containing only spoken words, aggregated by speech acts
+    """
     # speaker mentions in text have already been filtered out in a previous step
     # "n" attributes of stage directions start with SD
-    aggregated = (
-        df.query("tag == 'w' and not n.fillna('').str.startswith('SD')")
-        .groupby(["act", "scene", "stagegroup", "onstage", "speaker", "n"])
-        .agg({"tag": "count", "xml:id": "min"})
-        .rename(dict(tag="n_tokens"), axis=1)
-        .reset_index()
-    )
-    aggregated = aggregated.sort_values("xml:id").reset_index(drop=True)
+    aggregated = get_aggregated(df)
     set_setting(aggregated)
     aggregated_grouped = get_grouped_df(aggregated)
     return aggregated_grouped
