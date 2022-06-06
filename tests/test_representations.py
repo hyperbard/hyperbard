@@ -1,9 +1,6 @@
-from unittest import TestCase
-
 from hyperbard.representations import (
     get_bipartite_graph,
     get_count_weighted_graph,
-    get_hypergraph,
     get_weighted_multigraph,
 )
 from tests.xml_testcase import XMLTestCase
