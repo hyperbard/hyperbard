@@ -103,7 +103,12 @@ def get_bipartite_graph(
             row_tokens = row["n_tokens"]
             for row_speaker in row_speaker_list:
                 G.add_edge(
-                    row_speaker, row_node, n_lines=row_lines, n_tokens=row_tokens
+                    row_speaker,
+                    row_node,
+                    n_lines=row_lines,
+                    n_tokens=row_tokens,
+                    edge_index=idx + 1,
+                    edge_type="active",
                 )
             G.add_edges_from(
                 [
@@ -113,6 +118,8 @@ def get_bipartite_graph(
                 ],
                 n_lines=row_lines,
                 n_tokens=row_tokens,
+                edge_index=idx + 1,
+                edge_type="passive",
             )
     else:
         G = nx.Graph()

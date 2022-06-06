@@ -21,7 +21,7 @@ def node_dataframe(G):
 
 
 def edge_dataframe(G):
-    if type(G) == nx.MultiGraph:
+    if type(G) == nx.MultiGraph:  # multigraph clique expansions
         return pd.DataFrame.from_records(
             [
                 {
@@ -33,6 +33,18 @@ def edge_dataframe(G):
                 for u, v, key, data in G.edges(keys=True, data=True)
             ]
         ).sort_values(["edge_index", "node1", "node2", "key"])
+    elif type(G) == nx.MultiDiGraph:  #  directed multigraph star expansions
+        return pd.DataFrame.from_records(
+            [
+                {
+                    "source": u,
+                    "target": v,
+                    "key": key,
+                    **dict(data),
+                }
+                for u, v, key, data in G.edges(keys=True, data=True)
+            ]
+        ).sort_values(["edge_index", "source", "target", "key"])
     elif type(G) == nx.Graph:
         df = pd.DataFrame.from_records(
             [
@@ -44,14 +56,16 @@ def edge_dataframe(G):
                 for u, v, data in G.edges(data=True)
             ]
         )
-        if "edge_index" in df:
+        if "edge_index" in df:  # weighted star expansions
             return df.sort_values(["edge_index", "node1", "node2"])
-        elif "count" in df:
+        elif "count" in df:  # weighted clique expansions
             return df.sort_values(
                 ["node1", "node2", "count"], ascending=[True, True, False]
             )
         else:
             return df.sort_values(["node1", "node2"])
+    else:
+        raise NotImplementedError(f"Currently no transformation for {type(G)}!")
 
 
 def save_graph(G, representation, path):
@@ -60,14 +74,14 @@ def save_graph(G, representation, path):
         nodes = node_dataframe(G)
         edges = edge_dataframe(G)
     elif representation.startswith("se"):  # star expansions
+        representation_for_nodes = "-".join(representation.split("-")[:-1])
+        nodes = node_dataframe(G)
         if type(G) == nx.Graph:
-            representation_for_nodes = "-".join(representation.split("-")[:-1])
-            nodes = node_dataframe(G)
             edges = edge_dataframe(G).sort_values(
                 ["node2", "node1"]
             )  # node2 is the play part, so sorting by that first is more intuitive
         elif type(G) == nx.MultiDiGraph:  # speech act star expansion
-            return  # TODO
+            edges = edge_dataframe(G)
     elif representation.startswith("hg"):  # TODO hgs
         return
     else:
