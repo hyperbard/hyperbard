@@ -1,4 +1,4 @@
-from hyperbard.representations import (
+from hyperbard.graph_representations import (
     get_bipartite_graph,
     get_count_weighted_graph,
     get_weighted_multigraph,

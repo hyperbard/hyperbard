@@ -6,9 +6,9 @@ import hypernetx as hnx
 import numpy as np
 import seaborn as sns
 from cycler import cycler
+from hypergraph_representations import get_hypergraph
 
 from hyperbard.ranking import get_character_ranking_df
-from hyperbard.representations import get_hypergraph
 from hyperbard.utils import (
     character_string_to_sorted_list,
     get_filename_base,

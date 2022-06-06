@@ -10,9 +10,9 @@ import pandas as pd
 from hyperbard.representations import (
     get_bipartite_graph,
     get_count_weighted_graph,
-    get_hypergraph,
     get_weighted_multigraph,
 )
+from hypergraph_representations import get_hypergraph
 
 
 def s_degree_centrality(H, s=1, weight=None):
@@ -177,55 +177,61 @@ def get_character_ranking_df(df):
     )
     hG1 = get_hypergraph(df, groupby=["act", "scene"])
     hG2 = get_hypergraph(df, groupby=["act", "scene", "stagegroup"])
-    ranks = OrderedDict({
-        "01_se-scene-b": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG)
-        ),
-        "02_se-scene-w": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG, weight="n_lines")
-        ),
-        "03_se-group-b": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG2)
-        ),
-        "04_se-group-w": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG2, weight="n_lines")
-        ),
-        "05_se-speech-wd_in": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG3, weight="n_lines", centrality="in")
-        ),
-        "06_se-speech-wd_out": character_rank_dictionary(
-            centrality_ranking_with_equalities(bG3, weight="n_lines", centrality="out")
-        ),
-        "07_ce-scene-b": character_rank_dictionary(
-            centrality_ranking_with_equalities(G)
-        ),
-        "08_ce-scene-mb": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG)
-        ),
-        "09_ce-scene-mw": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG, weight="n_lines")
-        ),
-        "10_ce-group-b": character_rank_dictionary(
-            centrality_ranking_with_equalities(G2)
-        ),
-        "11_ce-group-mb": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG2)
-        ),
-        "12_act_group-mw": character_rank_dictionary(
-            centrality_ranking_with_equalities(mG2, weight="n_lines")
-        ),
-        "13_hg-scene-mb": character_rank_dictionary(
-            centrality_ranking_with_equalities(hG1)
-        ),
-        "14_hg-scene-mw": character_rank_dictionary(
-            centrality_ranking_with_equalities(hG1, weight="n_lines")
-        ),
-        "15_hg-group-mb": character_rank_dictionary(
-            centrality_ranking_with_equalities(hG2)
-        ),
-        "16_hg-group-mw": character_rank_dictionary(
-            centrality_ranking_with_equalities(hG2, weight="n_lines")
-        ),
-    })
+    ranks = OrderedDict(
+        {
+            "01_se-scene-b": character_rank_dictionary(
+                centrality_ranking_with_equalities(bG)
+            ),
+            "02_se-scene-w": character_rank_dictionary(
+                centrality_ranking_with_equalities(bG, weight="n_lines")
+            ),
+            "03_se-group-b": character_rank_dictionary(
+                centrality_ranking_with_equalities(bG2)
+            ),
+            "04_se-group-w": character_rank_dictionary(
+                centrality_ranking_with_equalities(bG2, weight="n_lines")
+            ),
+            "05_se-speech-wd_in": character_rank_dictionary(
+                centrality_ranking_with_equalities(
+                    bG3, weight="n_lines", centrality="in"
+                )
+            ),
+            "06_se-speech-wd_out": character_rank_dictionary(
+                centrality_ranking_with_equalities(
+                    bG3, weight="n_lines", centrality="out"
+                )
+            ),
+            "07_ce-scene-b": character_rank_dictionary(
+                centrality_ranking_with_equalities(G)
+            ),
+            "08_ce-scene-mb": character_rank_dictionary(
+                centrality_ranking_with_equalities(mG)
+            ),
+            "09_ce-scene-mw": character_rank_dictionary(
+                centrality_ranking_with_equalities(mG, weight="n_lines")
+            ),
+            "10_ce-group-b": character_rank_dictionary(
+                centrality_ranking_with_equalities(G2)
+            ),
+            "11_ce-group-mb": character_rank_dictionary(
+                centrality_ranking_with_equalities(mG2)
+            ),
+            "12_act_group-mw": character_rank_dictionary(
+                centrality_ranking_with_equalities(mG2, weight="n_lines")
+            ),
+            "13_hg-scene-mb": character_rank_dictionary(
+                centrality_ranking_with_equalities(hG1)
+            ),
+            "14_hg-scene-mw": character_rank_dictionary(
+                centrality_ranking_with_equalities(hG1, weight="n_lines")
+            ),
+            "15_hg-group-mb": character_rank_dictionary(
+                centrality_ranking_with_equalities(hG2)
+            ),
+            "16_hg-group-mw": character_rank_dictionary(
+                centrality_ranking_with_equalities(hG2, weight="n_lines")
+            ),
+        }
+    )
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
     return rank_df.sort_values(by=rank_df.columns[-1])

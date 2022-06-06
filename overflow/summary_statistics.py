@@ -7,9 +7,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from hypergraph_representations import get_hypergraph
 from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 
-from hyperbard.representations import get_hypergraph
 from hyperbard.statics import META_PATH
 from hyperbard.utils import get_filename_base
 
