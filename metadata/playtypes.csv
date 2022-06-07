@@ -1,10 +1,19 @@
+# This classification follows the Folger Shakespeare Library:
+#
+#   https://folgerpedia.folger.edu/William_Shakespeare%27s_plays
+#
+# Other classifications are possible; there are certain 'problem plays'
+# that can be put into either tragedy or comedy, for instance. This list
+# does not contain the 'Lost Plays' or plays that have been co-authored.
+#
+# Last update: 2022-07-07
 play_name,play_type
 "alls-well-that-ends-well","comedy"
 "a-midsummer-nights-dream","comedy"
 "antony-and-cleopatra","tragedy"
 "as-you-like-it","comedy"
 "coriolanus","tragedy"
-"cymbeline","tragedy"
+"cymbeline","comedy"
 "hamlet","tragedy"
 "henry-iv-part-1","history"
 "henry-iv-part-2","history"
