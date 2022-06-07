@@ -1,3 +1,5 @@
+.ONESHELL:
+
 # Specifies setup type to use for creating hyperbard's environment. By
 # default, we prefer an existing `poetry` installation. You can change
 # this by calling `make` accordingly:
@@ -57,8 +59,10 @@ $(RAWDATA):
 # Sets up a virtual environment or a `poetry` environment, depending on
 # the configuration of the user.
 setup:
-ifeq ($(SETUP),"venv")
+ifeq ($(SETUP),venv)
 	@echo "Using 'venv' to create virtual environment"
+	python -m venv .venv
+	. .venv/bin/activate
 	$(eval PREFIX=)
 else
 	@echo "Using 'poetry' to create virtual environment"
