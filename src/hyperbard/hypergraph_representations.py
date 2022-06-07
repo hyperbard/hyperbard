@@ -148,5 +148,11 @@ def get_hypergraph_nodes(df: pd.DataFrame) -> pd.DataFrame:
         lambda node: df_exploded_speaker.query("speaker == @node").n_tokens.sum()
     )
     return nodes[
-        ["n_lines_onstage", "n_lines_speaker", "n_tokens_onstage", "n_tokens_speaker"]
+        [
+            "node",
+            "n_lines_onstage",
+            "n_lines_speaker",
+            "n_tokens_onstage",
+            "n_tokens_speaker",
+        ]
     ]
