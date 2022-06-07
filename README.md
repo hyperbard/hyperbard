@@ -6,6 +6,30 @@ All the world's a (hyper)graph: drama data for data drama
 - [Folger Shakespeare](https://shakespeare.folger.edu/download-the-folger-shakespeare-complete-set/) (our data source)
 - [Oxford Shakespeare](https://oll.libertyfund.org/title/shakespeare-the-complete-works-of-william-shakespeare-part-1-the-oxford-shakespeare)
 
+## Requirements
+
+Our code has been tested with Python 3.8 and Python 3.9 under Mac OS
+X and Linux. Other Python versions *may* not support all dependencies,
+whereas Windows is *not* a support operating system.
+
+## Quickstart
+
+We recommend using [`poetry`](https://python-poetry.org) for package and
+dependency management. Our main pipeline also supports standard virtual
+environments, as created via the `venv` package. To run the pipeline and
+create all figures run the following command:
+
+```bash
+$ make
+```
+
+Alternative, if you wish to use `venv` instead of `poetry`, run the
+following command:
+
+```bash
+$ make SETUP=venv
+```
+
 ## Installation and overview
 
 We recommend using the [`poetry`](https://python-poetry.org) package and
