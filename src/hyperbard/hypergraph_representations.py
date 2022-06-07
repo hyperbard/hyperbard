@@ -2,6 +2,18 @@ import pandas as pd
 from utils import character_string_to_sorted_list, sort_join_strings, string_to_set
 
 
+def _explode_df(df, explode_column):
+    """
+
+    :param df:
+    :param explode_column:
+    :return:
+    """
+    df_exploded = df.copy()
+    df_exploded[explode_column] = df_exploded[explode_column].map(string_to_set)
+    return df_exploded.explode(explode_column)
+
+
 def get_hypergraph_edges(
     df: pd.DataFrame, groupby: list
 ) -> (pd.DataFrame, pd.DataFrame):
@@ -13,7 +25,7 @@ def get_hypergraph_edges(
     Representations: hg-{scene, group}-{mb,mw}
 
     :param groupby: ["act", "scene"] -> one edge per act and scene, ["act", "scene", "stagegroup"] -> one edge per act, scene, and stagegroup
-    :return: hnx.HyperGraph corresponding to the specified groupby
+    :return: tuple of pd.DataFrame objects corresponding to (edges, edge_specific_node_weights)
     """
     agg = {
         "n_tokens": "sum",
@@ -23,12 +35,9 @@ def get_hypergraph_edges(
     df_grouped = df.groupby(groupby).agg(agg).reset_index()
     df_grouped["onstage"] = df_grouped["onstage"].map(character_string_to_sorted_list)
     # for node weights <- lines of speech
-    df_speaker_exploded = df.copy()
-    df_speaker_exploded.speaker = df_speaker_exploded.speaker.map(string_to_set)
-    df_speaker_exploded = df_speaker_exploded.explode("speaker")
-    speaker_groupby = groupby + ["speaker"] if "speaker" not in groupby else groupby
+    df_speaker_exploded = _explode_df(df, "speaker")
     speaker_weights = (
-        df_speaker_exploded.groupby(speaker_groupby)
+        df_speaker_exploded.groupby(groupby + ["speaker"])
         .agg({"n_tokens": "sum", "n_lines": "sum"})
         .reset_index()
         .rename(
@@ -39,9 +48,7 @@ def get_hypergraph_edges(
         )
     )
     # for node weights <- lines onstage
-    df_onstage_exploded = df.copy()
-    df_onstage_exploded.onstage = df_onstage_exploded.onstage.map(string_to_set)
-    df_onstage_exploded = df_onstage_exploded.explode("onstage")
+    df_onstage_exploded = _explode_df(df, "onstage")
     onstage_weights = (
         df_onstage_exploded.groupby(groupby + ["onstage"])
         .agg({"n_tokens": "sum", "n_lines": "sum"})
@@ -57,21 +64,19 @@ def get_hypergraph_edges(
     edge_specific_node_weights = speaker_weights.merge(
         onstage_weights, left_on=merge_columns, right_on=merge_columns, how="outer"
     ).fillna(0)
-    edge_specific_node_weights.n_lines_speaker = (
-        edge_specific_node_weights.n_lines_speaker.astype(int)
-    )
-    edge_specific_node_weights.n_tokens_speaker = (
-        edge_specific_node_weights.n_tokens_speaker.astype(int)
-    )
-    edge_specific_node_weights.n_lines_onstage = (
-        edge_specific_node_weights.n_lines_onstage.astype(int)
-    )
-    edge_specific_node_weights.n_tokens_onstage = (
-        edge_specific_node_weights.n_tokens_onstage.astype(int)
-    )
-
+    int_columns = [
+        "n_lines_speaker",
+        "n_tokens_speaker",
+        "n_lines_onstage",
+        "n_tokens_onstage",
+    ]
+    for column in int_columns:
+        edge_specific_node_weights[column] = edge_specific_node_weights[column].astype(
+            int
+        )
     df_grouped.onstage = df_grouped.onstage.map(sort_join_strings)
     return df_grouped, edge_specific_node_weights
+
     # H = hnx.Hypergraph()
     # for idx, row in df_grouped.iterrows():
     #     H.add_edge(
@@ -117,6 +122,11 @@ def get_multi_directed_hypergraph_edges(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def get_weighted_directed_hypergraph_edges(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df:
+    :return:
+    """
     df_mwd = get_multi_directed_hypergraph_edges(df)
     df_mwd = (
         df_mwd.groupby(["act", "scene", "stagegroup", "speaker", "onstage"])
@@ -126,10 +136,15 @@ def get_weighted_directed_hypergraph_edges(df: pd.DataFrame) -> pd.DataFrame:
     return df_mwd
 
 
-def get_hypergraph_nodes(df: pd.DataFrame) -> pd.DataFrame:
-    df_exploded_onstage = df.copy()
-    df_exploded_onstage.onstage = df_exploded_onstage.onstage.map(string_to_set)
-    df_exploded_onstage = df_exploded_onstage.explode("onstage")
+def _hypergraph_node_dataframe(
+    df_exploded_onstage: pd.DataFrame, df_exploded_speaker: pd.DataFrame
+) -> pd.DataFrame:
+    """
+
+    :param df_exploded_onstage:
+    :param df_exploded_speaker:
+    :return:
+    """
     nodes = pd.DataFrame()
     nodes["node"] = sorted(df_exploded_onstage.onstage.unique())
     nodes["n_lines_onstage"] = nodes.node.map(
@@ -138,21 +153,29 @@ def get_hypergraph_nodes(df: pd.DataFrame) -> pd.DataFrame:
     nodes["n_tokens_onstage"] = nodes.node.map(
         lambda node: df_exploded_onstage.query("onstage == @node").n_tokens.sum()
     )
-    df_exploded_speaker = df.copy()
-    df_exploded_speaker.speaker = df_exploded_speaker.speaker.map(string_to_set)
-    df_exploded_speaker = df_exploded_speaker.explode("speaker")
     nodes["n_lines_speaker"] = nodes.node.map(
         lambda node: df_exploded_speaker.query("speaker == @node").n_lines.sum()
     )
     nodes["n_tokens_speaker"] = nodes.node.map(
         lambda node: df_exploded_speaker.query("speaker == @node").n_tokens.sum()
     )
-    return nodes[
-        [
-            "node",
-            "n_lines_onstage",
-            "n_lines_speaker",
-            "n_tokens_onstage",
-            "n_tokens_speaker",
-        ]
+    column_order = [
+        "node",
+        "n_tokens_onstage",
+        "n_tokens_speaker",
+        "n_lines_onstage",
+        "n_lines_speaker",
     ]
+    return nodes[column_order]
+
+
+def get_hypergraph_nodes(df: pd.DataFrame) -> pd.DataFrame:
+    """
+
+    :param df: pd.DataFrame as loaded from an .agg.csv file
+    :return: pd.DataFrame of hypergraph nodes with {tokens,lines} {spoken,heard} as potential global node weights
+    """
+    df_exploded_onstage = _explode_df(df, "onstage")
+    df_exploded_speaker = _explode_df(df, "speaker")
+    nodes = _hypergraph_node_dataframe(df_exploded_onstage, df_exploded_speaker)
+    return nodes
