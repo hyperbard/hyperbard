@@ -13,10 +13,9 @@ from hypernetx.algorithms.s_centrality_measures import s_eccentricity
 from hyperbard.statics import META_PATH
 from hyperbard.utils import get_filename_base
 
-NAME_TO_TYPE = pd.read_csv(
-    f"{META_PATH}/playtypes.csv",
-    comment='#'
-).set_index("play_name")
+NAME_TO_TYPE = pd.read_csv(f"{META_PATH}/playtypes.csv", comment="#").set_index(
+    "play_name"
+)
 
 
 def calculate_summary_statistics(name, hypergraphs, aggregate_fn=np.mean):

@@ -41,7 +41,9 @@ def compute_all_raw_statistics(filenames_agg, name_to_type):
 
 if __name__ == "__main__":
     filenames_agg = sorted(glob(f"{DATA_PATH}/*.agg.csv"))
-    name_to_type = pd.read_csv(f"{META_PATH}/playtypes.csv", comment='#').set_index("play_name")
+    name_to_type = pd.read_csv(f"{META_PATH}/playtypes.csv", comment="#").set_index(
+        "play_name"
+    )
     df = compute_all_raw_statistics(filenames_agg, name_to_type)
     df.to_csv(f"{META_PATH}/summary_statistics_raw.csv", index=False)
     #  print(df.to_csv(index=False))
