@@ -9,6 +9,10 @@
 # Other options are not supported at the moment.
 SETUP := "poetry"
 
+# Default prefix for running commands. Can be updated if a virtual
+# environment is used.
+$(eval PREFIX=poetry run )
+
 RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/a-midsummer-nights-dream_TEIsimple_FolgerShakespeare.xml \
 					rawdata/antony-and-cleopatra_TEIsimple_FolgerShakespeare.xml \
@@ -50,7 +54,7 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 all: setup preprocess
 
 preprocess: $(RAWDATA)
-	@$$($(PREFIX) python src/hyperbard/run_preprocessing.py)
+	@$(PREFIX) python src/hyperbard/run_preprocessing.py
 
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
