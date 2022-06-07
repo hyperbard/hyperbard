@@ -7,12 +7,18 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 
-from hyperbard.representations import (
+from hyperbard.graph_representations import (
     get_bipartite_graph,
     get_count_weighted_graph,
     get_weighted_multigraph,
 )
-from hypergraph_representations import get_hypergraph
+
+from hyperbard.hypergraph_representations import (
+    get_hypergraph_edges,
+    get_hypergraph_nodes,
+    get_multi_directed_hypergraph_edges,
+    get_weighted_directed_hypergraph_edges,
+)
 
 
 def s_degree_centrality(H, s=1, weight=None):
@@ -89,6 +95,56 @@ def degree_centrality_graph(G, weight=None, centrality=None):
         else:
             raise NotImplementedError(f"Unexpected graph type: {type(G)}!")
     return centrality
+
+
+def s_degree(H, s=1, weight=None, superlevel=True):
+    """Calculate degree  values of a hypergraph.
+
+    This function calculates the (weighted) degree of a hypergraph,
+    focusing either on edges of cardinality at least `s` or at most
+    `s` (in case `superlevel == False`).
+
+    Parameters
+    ----------
+    H : hnx.Hypergraph
+        Hypergraph
+
+    s : int
+        Specifies connectivity threshold. The flag `superlevel` controls
+        the direction of said threshold.
+
+    weight : str or `None`
+        If set, queries the specific edge attribute to use as a weight
+        for the degree calculation.
+
+    superlevel : bool
+        If set, `s` is treated as a *minimum* connectivity threshold. If
+        not set, `s` is treated as a maximum.
+
+    Returns
+    -------
+    dict
+        Dictionary with nodes as keys and values as (weighted) degrees.
+    """
+    values = {}
+    for node in H.nodes:
+        if weight is not None:
+            # Get all edges of size at least `s` (if `superlevel` is
+            # set) in which the specific node participates.
+            memberships = H.nodes[node].memberships
+            if superlevel:
+                edges = set(e for e in memberships if len(H.edges[e]) >= s)
+            else:
+                edges = set(e for e in memberships if len(H.edges[e]) <= s)
+
+            values[node] = sum(getattr(H.edges[e], weight) for e in edges)
+
+    return values
+
+
+def degree_hypergraph(H, weight=None, centrality=None):
+    values = s_degree(H, s=1, weight=weight)
+    return values
 
 
 # TODO: Ignoring most of the input parameters at the moment.
