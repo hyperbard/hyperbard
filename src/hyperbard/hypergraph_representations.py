@@ -77,17 +77,6 @@ def get_hypergraph_edges(
     df_grouped.onstage = df_grouped.onstage.map(sort_join_strings)
     return df_grouped, edge_specific_node_weights
 
-    # H = hnx.Hypergraph()
-    # for idx, row in df_grouped.iterrows():
-    #     H.add_edge(
-    #         hnx.Entity(
-    #             idx,
-    #             row["onstage"],
-    #             **{k: v for k, v in row.items() if k != "onstage"},
-    #         )
-    #     )
-    # return H
-
 
 def get_multi_directed_hypergraph_edges(df: pd.DataFrame) -> pd.DataFrame:
     """

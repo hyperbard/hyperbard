@@ -6,7 +6,6 @@ import hypernetx as hnx
 import numpy as np
 import seaborn as sns
 from cycler import cycler
-from hypergraph_representations import get_hypergraph
 
 from hyperbard.ranking import get_character_ranking_df
 from hyperbard.utils import (
@@ -22,6 +21,19 @@ import pandas as pd
 from matplotlib import cm
 
 from hyperbard.statics import DATA_PATH, GRAPHICS_PATH
+
+
+def get_hypergraph(df_grouped):
+    H = hnx.Hypergraph()
+    for idx, row in df_grouped.iterrows():
+        H.add_edge(
+            hnx.Entity(
+                idx,
+                row["onstage"],
+                **{k: v for k, v in row.items() if k != "onstage"},
+            )
+        )
+    return H
 
 
 def plot_character_rankings(df, save_path=None):
