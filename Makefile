@@ -1,3 +1,12 @@
+# Specifies setup type to use for creating hyperbard's environment. By
+# default, we prefer an existing `poetry` installation. You can change
+# this by calling `make` accordingly:
+#
+# 		make SETUP=venv
+#
+# Other options are not supported at the moment.
+SETUP := "poetry"
+
 RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/a-midsummer-nights-dream_TEIsimple_FolgerShakespeare.xml \
 					rawdata/antony-and-cleopatra_TEIsimple_FolgerShakespeare.xml \
@@ -44,3 +53,13 @@ preprocess: $(RAWDATA)
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
 	make -C rawdata
+
+# Sets up a virtual environment or a `poetry` environment, depending on
+# the configuration of the user.
+setup:
+ifeq ($(SETUP),"venv")
+	@echo "Using 'venv' to create virtual environment"
+else
+	@echo "Using 'poetry' to create virtual environment"
+	poetry install
+endif
