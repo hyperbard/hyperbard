@@ -45,10 +45,10 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/troilus-and-cressida_TEIsimple_FolgerShakespeare.xml \
 					rawdata/twelfth-night_TEIsimple_FolgerShakespeare.xml
 
+all: setup preprocess
 
-all: preprocess
-
-preprocess: $(RAWDATA) 
+preprocess: $(RAWDATA)
+	@$$($(PREFIX) python src/hyperbard/run_preprocessing.py)
 
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
@@ -59,7 +59,9 @@ $(RAWDATA):
 setup:
 ifeq ($(SETUP),"venv")
 	@echo "Using 'venv' to create virtual environment"
+	$(eval PREFIX=)
 else
 	@echo "Using 'poetry' to create virtual environment"
 	poetry install
+	$(eval PREFIX=poetry run )
 endif
