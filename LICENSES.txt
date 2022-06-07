@@ -1,0 +1,5 @@
+- The dataset is licensed under a CC BY-NC 4.0 license. See the file
+  'CC-BY-NC-4.0.txt' for details.
+
+- The code is licensed under a BSD 3-Clause License. See the file
+  'BSD-3.txt' for more details. 
