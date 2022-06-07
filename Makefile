@@ -9,6 +9,11 @@
 # Other options are not supported at the moment.
 SETUP := "poetry"
 
+# Sets the data set source to use for processing the raw data. If set to
+# "local", uses `rawdata.zip` that is supplied with the repository. When
+# set to "global", queries the latest online version.
+SOURCE := "local"
+
 # Default prefix for running commands. Can be updated if a virtual
 # environment is used.
 $(eval PREFIX=poetry run )
@@ -62,7 +67,7 @@ preprocess: $(RAWDATA)
 
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
-	make -C rawdata
+	make -C rawdata SOURCE=$(SOURCE)
 
 # Sets up a virtual environment or a `poetry` environment, depending on
 # the configuration of the user.
