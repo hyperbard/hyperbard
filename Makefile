@@ -51,7 +51,11 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/troilus-and-cressida_TEIsimple_FolgerShakespeare.xml \
 					rawdata/twelfth-night_TEIsimple_FolgerShakespeare.xml
 
-all: setup preprocess
+all: setup preprocess representations
+
+representations: preprocess
+	@$(PREFIX) python src/hyperbard/create_graph_representations.py
+	@$(PREFIX) python src/hyperbard/create_hypergraph_representations.py
 
 preprocess: $(RAWDATA)
 	@$(PREFIX) python src/hyperbard/run_preprocessing.py
