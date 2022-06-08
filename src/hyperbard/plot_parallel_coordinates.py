@@ -11,6 +11,10 @@ from hyperbard.utils import get_name_from_identifier
 
 import matplotlib.pyplot as plt
 
+plt.rcParams["font.family"] = "serif"
+plt.rcParams["font.serif"] = "Palatino"
+plt.rcParams["text.usetex"] = True
+plt.rcParams['pdf.fonttype'] = 42
 
 
 def plot_character_rankings(character_ranking_df, save_path=None):
