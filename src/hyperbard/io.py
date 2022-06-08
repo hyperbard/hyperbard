@@ -3,6 +3,7 @@
 import os
 import re
 
+import hypernetx as hnx
 import networkx as nx
 import pandas as pd
 
@@ -98,3 +99,52 @@ def load_graph(play, representation, edge_weights=None):
         )
 
     return G
+
+
+def load_hypergraph(play, representation, edge_weights=None):
+    """Load specific hypergraph representation for a play.
+
+    Parameters
+    ----------
+    play : str
+        Identifier of the play, e.g. 'romeo-and-juliet'.
+
+    representation : str
+        Hypergraph representation identifier, e.g. 'hg-group-mw'.
+
+    edge_weights : None or str
+        Optional attribute to use for assigning edge weights.
+
+    Returns
+    -------
+    hnx.Hypergraph
+        Hypergraph corresponding to the specified play and representation.
+    """
+    hypergraph_type = representation.split("-")[0]
+    agg_type = representation.split("-")[1]
+
+    assert hypergraph_type == "hg", \
+        RuntimeError("Expecting hypergraph representation")
+
+    edges_file = os.path.join(
+        GRAPHDATA_PATH, f"{play}_{representation}.edges.csv"
+    )
+    edges = pd.read_csv(edges_file)
+
+    edges.onstage = edges.onstage.map(
+        lambda x: list(map(prettify_identifier, x.split()))
+    ).map(lambda onstage:[x for x in onstage if not x.isupper()])
+
+    print(edges)
+
+    #def get_hypergraph(df_grouped):
+    #    H = hnx.Hypergraph()
+    #    for idx, row in df_grouped.iterrows():
+    #        H.add_edge(
+    #            hnx.Entity(
+    #                idx,
+    #                row["onstage"],
+    #                **{k: v for k, v in row.items() if k != "onstage"},
+    #            )
+    #        )
+    #    return H
