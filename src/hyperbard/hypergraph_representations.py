@@ -119,9 +119,8 @@ def get_weighted_directed_hypergraph_edges(df: pd.DataFrame) -> pd.DataFrame:
     df_mwd = get_multi_directed_hypergraph_edges(df)
     df_mwd = (
         df_mwd.groupby(["act", "scene", "stagegroup", "speaker", "onstage"])
-        .agg(dict(n_lines="count"))
+        .agg(dict(n_tokens=sum, n_lines=sum))
         .reset_index()
-        .rename(dict(n_lines="count"), axis=1)
     )
     return df_mwd
 
