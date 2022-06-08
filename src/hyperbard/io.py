@@ -31,6 +31,7 @@ def load_graph(play, representation, edge_weights=None):
         Graph corresponding to the specified play and representation.
     """
     graph_type = representation.split('-')[0]
+    agg_type = representation.split('-')[1]
 
     assert graph_type in ['ce', 'se'], RuntimeError('Unexpected graph type')
 
@@ -45,6 +46,14 @@ def load_graph(play, representation, edge_weights=None):
     nodes = pd.read_csv(nodes_file)
     edges = pd.read_csv(edges_file)
 
+    edges = edges.rename(
+        {
+            'source': 'node1',
+            'target': 'node2',
+        },
+        axis='columns'
+    )
+
     # Get nice character names to stay more true to the raw data instead
     # of spewing out additional tokens.
     nodes.node = nodes.node.map(prettify_identifier)
@@ -55,13 +64,19 @@ def load_graph(play, representation, edge_weights=None):
     edges.node2 = edges.node2.astype(str)
     edges.node2 = edges.node2.map(prettify_identifier)
 
-    G = nx.Graph()
+    if agg_type != 'speech':
+        G = nx.Graph()
 
-    if graph_type == 'ce':
-        G.add_nodes_from(nodes.node)
-    elif graph_type == 'se':
-        G.add_nodes_from(edges.node1, node_type='character')
-        G.add_nodes_from(edges.node2, node_type='text_unit')
+        if graph_type == 'ce':
+            G.add_nodes_from(nodes.node)
+        elif graph_type == 'se':
+            G.add_nodes_from(edges.node1, node_type='character')
+            G.add_nodes_from(edges.node2, node_type='text_unit')
+    else:
+        G = nx.DiGraph()
+
+        for _, row in nodes.iterrows():
+            G.add_node(row.node, node_type=row['node_type'])
 
     if edge_weights is None:
         G.add_edges_from(zip(edges.node1, edges.node2))
@@ -71,9 +86,5 @@ def load_graph(play, representation, edge_weights=None):
             weight=edge_weights,
         )
 
-    print(nodes)
-    print(edges)
-    print(G)
-    print(G.edges)
-
+    print(G.nodes)
     return G
