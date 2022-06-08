@@ -17,7 +17,6 @@ from hyperbard.graph_representations import (
     get_count_weighted_graph,
     get_weighted_multigraph,
 )
-
 from hyperbard.hypergraph_representations import (
     get_hypergraph_edges,
     get_hypergraph_nodes,
@@ -106,7 +105,9 @@ def calculate_degree(G, weight=None, degree_type=None):
     """
     # Defenses against garbage input
     if degree_type not in [None, "in", "out"]:
-        raise ValueError(f"degree_type={degree_type}, must be in {[None, 'in', 'out']}!")
+        raise ValueError(
+            f"degree_type={degree_type}, must be in {[None, 'in', 'out']}!"
+        )
     if degree_type is not None and type(G) not in [nx.DiGraph, nx.MultiDiGraph]:
         raise ValueError(
             f"type(G)={type(G)}, must be in {[nx.DiGraph, nx.MultiDiGraph]} because degree={degree}!"
@@ -202,7 +203,9 @@ def get_character_ranking_df(df):
 
     # TODO: Does *not* yet use the right weights.
     hg_scene_mw = from_edges(get_hypergraph_edges(df, groupby=["act", "scene"])[0])
-    hg_group_mw = from_edges(get_hypergraph_edges(df, groupby=["act", "scene", "stagegroup"])[0])
+    hg_group_mw = from_edges(
+        get_hypergraph_edges(df, groupby=["act", "scene", "stagegroup"])[0]
+    )
     hg_speech_mwd = from_edges(get_multi_directed_hypergraph_edges(df))
     hg_speech_wd = from_edges(get_weighted_directed_hypergraph_edges(df))
 
@@ -221,14 +224,10 @@ def get_character_ranking_df(df):
                 degree_ranking_with_equalities(bG2, weight="n_lines")
             ),
             "05_se-speech-wd_in": character_rank_dictionary(
-                degree_ranking_with_equalities(
-                    bG3, weight="n_lines", degree_type="in"
-                )
+                degree_ranking_with_equalities(bG3, weight="n_lines", degree_type="in")
             ),
             "06_se-speech-wd_out": character_rank_dictionary(
-                degree_ranking_with_equalities(
-                    bG3, weight="n_lines", degree_type="out"
-                )
+                degree_ranking_with_equalities(bG3, weight="n_lines", degree_type="out")
             ),
             "07_ce-scene-b": character_rank_dictionary(
                 degree_ranking_with_equalities(G)
@@ -248,18 +247,18 @@ def get_character_ranking_df(df):
             "12_act_group-mw": character_rank_dictionary(
                 degree_ranking_with_equalities(mG2, weight="n_lines")
             ),
-            #"13_hg-scene-mb": character_rank_dictionary(
+            # "13_hg-scene-mb": character_rank_dictionary(
             #    degree_ranking_with_equalities(hg_scene_mw)
-            #),
-            #"14_hg-scene-mw": character_rank_dictionary(
+            # ),
+            # "14_hg-scene-mw": character_rank_dictionary(
             #    degree_ranking_with_equalities(hg_scene_mw, weight="n_lines")
-            #),
-            #"15_hg-group-mb": character_rank_dictionary(
+            # ),
+            # "15_hg-group-mb": character_rank_dictionary(
             #    degree_ranking_with_equalities(hg_group_mw)
-            #),
-            #"16_hg-group-mw": character_rank_dictionary(
+            # ),
+            # "16_hg-group-mw": character_rank_dictionary(
             #    degree_ranking_with_equalities(hg_group_mw, weight="n_lines")
-            #),
+            # ),
         }
     )
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
@@ -270,21 +269,22 @@ def get_character_ranking(representations):
     ranks = OrderedDict()
 
     for representation in representations:
-        name = representation['name']
-        graph = representation['graph']
-        weight = representation.get('weight', None)
-        degree = representation.get('degree', None)
+        name = representation["name"]
+        graph = representation["graph"]
+        weight = representation.get("weight", None)
+        degree = representation.get("degree", None)
 
         ranks[name] = character_rank_dictionary(
-            degree_ranking_with_equalities(
-                graph,
-                weight=weight,
-                degree_type=degree
-            )
+            degree_ranking_with_equalities(graph, weight=weight, degree_type=degree)
         )
 
-    rank_df = pd.DataFrame.from_records(ranks).rename(
-        # Rename columns by dropping the 'XX-' prefix.
-        mapper=lambda x: '-'.join(x.split('-')[1:]), axis='columns'
-    ).reset_index()
+    rank_df = (
+        pd.DataFrame.from_records(ranks)
+        .rename(
+            # Rename columns by dropping the 'XX-' prefix.
+            mapper=lambda x: "-".join(x.split("-")[1:]),
+            axis="columns",
+        )
+        .reset_index()
+    )
     return rank_df.sort_values(by=rank_df.columns[-1])

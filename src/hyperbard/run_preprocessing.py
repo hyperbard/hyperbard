@@ -56,9 +56,7 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        '-f', '--force',
-        action='store_true',
-        help='If set, overwrites files'
+        "-f", "--force", action="store_true", help="If set, overwrites files"
     )
 
     args = parser.parse_args()

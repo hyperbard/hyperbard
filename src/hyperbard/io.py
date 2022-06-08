@@ -5,8 +5,8 @@ import re
 
 import networkx as nx
 import pandas as pd
-
 from statics import GRAPHDATA_PATH
+
 
 def prettify_identifier(identifier):
     """Return pretty identifier (character name)."""
@@ -37,28 +37,28 @@ def load_graph(play, representation, edge_weights=None):
     nx.Graph
         Graph corresponding to the specified play and representation.
     """
-    graph_type = representation.split('-')[0]
-    agg_type = representation.split('-')[1]
+    graph_type = representation.split("-")[0]
+    agg_type = representation.split("-")[1]
 
-    assert graph_type in ['ce', 'se'], RuntimeError('Unexpected graph type')
+    assert graph_type in ["ce", "se"], RuntimeError("Unexpected graph type")
 
-    nodes_file = os.path.join(GRAPHDATA_PATH, f'{play}_{graph_type}.nodes.csv')
-    edges_file = os.path.join(GRAPHDATA_PATH, f'{play}_{representation}.edges.csv')
+    nodes_file = os.path.join(GRAPHDATA_PATH, f"{play}_{graph_type}.nodes.csv")
+    edges_file = os.path.join(GRAPHDATA_PATH, f"{play}_{representation}.edges.csv")
 
     # Use special representations for getting the nodes of star expansions
-    if graph_type == 'se':
-        nodes_repr = '-'.join(representation.split('-')[:2])
-        nodes_file = os.path.join(GRAPHDATA_PATH, f'{play}_{nodes_repr}.nodes.csv')
+    if graph_type == "se":
+        nodes_repr = "-".join(representation.split("-")[:2])
+        nodes_file = os.path.join(GRAPHDATA_PATH, f"{play}_{nodes_repr}.nodes.csv")
 
     nodes = pd.read_csv(nodes_file)
     edges = pd.read_csv(edges_file)
 
     edges = edges.rename(
         {
-            'source': 'node1',
-            'target': 'node2',
+            "source": "node1",
+            "target": "node2",
         },
-        axis='columns'
+        axis="columns",
     )
 
     # Get nice character names to stay more true to the raw data instead
@@ -71,22 +71,22 @@ def load_graph(play, representation, edge_weights=None):
     edges.node2 = edges.node2.astype(str)
     edges.node2 = edges.node2.map(prettify_identifier)
 
-    nodes = nodes.query('not node.str.isupper()')
-    edges = edges.query('not node1.str.isupper() and not node2.str.isupper()')
+    nodes = nodes.query("not node.str.isupper()")
+    edges = edges.query("not node1.str.isupper() and not node2.str.isupper()")
 
-    if agg_type != 'speech':
+    if agg_type != "speech":
         G = nx.Graph()
 
-        if graph_type == 'ce':
+        if graph_type == "ce":
             G.add_nodes_from(nodes.node)
-        elif graph_type == 'se':
-            G.add_nodes_from(edges.node1, node_type='character')
-            G.add_nodes_from(edges.node2, node_type='text_unit')
+        elif graph_type == "se":
+            G.add_nodes_from(edges.node1, node_type="character")
+            G.add_nodes_from(edges.node2, node_type="text_unit")
     else:
         G = nx.DiGraph()
 
         for _, row in nodes.iterrows():
-            G.add_node(row.node, node_type=row['node_type'])
+            G.add_node(row.node, node_type=row["node_type"])
 
     if edge_weights is None:
         G.add_edges_from(zip(edges.node1, edges.node2))
