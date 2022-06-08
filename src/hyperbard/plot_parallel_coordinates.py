@@ -1,13 +1,24 @@
 """Parallel coordinate plotting script (ranking of characters)."""
 
+import os
+
 import pandas as pd
+
+from glob import glob
+from statics import (
+    DATA_PATH,
+    GRAPHICS_PATH
+)
 
 from cycler import cycler
 from matplotlib import cm
 
 from hyperbard.io import load_graph
 from hyperbard.ranking import get_character_ranking
-from hyperbard.utils import get_name_from_identifier
+from hyperbard.utils import (
+    get_filename_base,
+    get_name_from_identifier
+)
 
 import matplotlib.pyplot as plt
 
@@ -51,11 +62,8 @@ def plot_character_rankings(character_ranking_df, save_path=None):
         plt.show()
 
 
-if __name__ == '__main__':
-
-    # TODO: Make configurable; should come from iteration or outside
-    # argument?
-    play = 'romeo-and-juliet'
+def handle_play(play):
+    print(play)
 
     ce_scene_b = load_graph(play, 'ce-scene-w', 'count')
     ce_scene_m = load_graph(play, 'ce-scene-mw', 'n_lines')
@@ -141,9 +149,23 @@ if __name__ == '__main__':
             'weight': 'n_lines',
             'degree': 'out',
         },
-
     ]
 
     df_ranking = get_character_ranking(representations)
-    print(df_ranking)
-    plot_character_rankings(df_ranking)
+
+    plot_character_rankings(
+        df_ranking,
+        save_path=os.path.join(
+            f"{GRAPHICS_PATH}", f"{play}_ranking_parallel_coordinates.pdf"
+        )
+    )
+
+
+if __name__ == '__main__':
+    plays = [
+        get_filename_base(fn).replace('.agg', '')
+        for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
+    ]
+
+    for play in plays:
+        handle_play(play)
