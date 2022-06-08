@@ -162,25 +162,26 @@ def degree_ranking(G, weight=None, degree_type=None):
     )
 
 
-def degree_ranking_with_equalities(G, weight=None, degree=None):
+def degree_ranking_with_equalities(G, weight=None, degree_type=None):
     """
     degree: None or "in" or "out"
     output: list of tuples [({set of characters}, degree), ...], sorted by degree descending
     """
-    ranking_list = degree_ranking(G, weight, degree)
+    ranking_list = degree_ranking(G, weight, degree_type)
     new_list = []
     for character, degree in ranking_list:
         if new_list and degree == new_list[-1][-1]:
             new_list[-1][0].add(character)
         else:
             new_list.append(({character}, degree))
+
     return new_list
 
 
-def character_rank_dictionary(centrality_ranking):
+def character_rank_dictionary(ranking):
     rank_dict = dict()
     rank = 1
-    for (characters, _) in centrality_ranking:
+    for (characters, _) in ranking:
         for character in characters:
             rank_dict[character] = rank
         rank += len(characters)
@@ -260,5 +261,20 @@ def get_character_ranking_df(df):
             ),
         }
     )
+    rank_df = pd.DataFrame.from_records(ranks).reset_index()
+    return rank_df.sort_values(by=rank_df.columns[-1])
+
+
+def get_character_ranking(representations):
+    ranks = OrderedDict()
+    for representation in representations:
+        name = representation['name']
+        graph = representation['graph']
+        weight = representation.get('weight', None)
+
+        ranks[name] = character_rank_dictionary(
+            degree_ranking_with_equalities(graph, weight)
+        )
+
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
     return rank_df.sort_values(by=rank_df.columns[-1])
