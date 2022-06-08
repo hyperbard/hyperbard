@@ -2,6 +2,7 @@
 
 import os
 
+import numpy as np
 import pandas as pd
 
 from glob import glob
@@ -21,6 +22,7 @@ from hyperbard.utils import (
 )
 
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = "Palatino"
@@ -57,6 +59,42 @@ def plot_character_rankings(character_ranking_df, save_path=None):
     plt.tight_layout()
     if save_path is not None:
         plt.savefig(save_path, transparent=True, bbox_inches="tight", backend="pgf")
+        plt.close()
+    else:
+        plt.show()
+
+
+def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=None):
+    vmin = min(upper.min().min(), lower.min().min())
+
+    sns.heatmap(
+        upper,
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.tril(upper, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+        cbar=False,
+    )
+    sns.heatmap(
+        lower,
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.triu(lower.values, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+    )
+
+    plt.title(f"lower triangle: {lower_name}, upper triangle: {upper_name}")
+
+    if save_path is not None:
+        plt.savefig(save_path, transparent=True, backend="pgf", bbox_inches="tight")
         plt.close()
     else:
         plt.show()
@@ -159,6 +197,21 @@ def handle_play(play):
         )
     )
 
+    return df_ranking
+
+
+def calculate_correlation_matrices(rankings):
+    """Calculate correlation matrices from dictionary of data frames."""
+    correlation_matrices = {}
+
+    for play, ranking in rankings.items():
+        ranking = ranking.set_index("index")
+        correlations = ranking.corr("spearman")
+
+        correlation_matrices[play] = correlations
+
+    return correlation_matrices
+
 
 if __name__ == '__main__':
     plays = [
@@ -166,5 +219,21 @@ if __name__ == '__main__':
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     ]
 
+    # Store rankings for subsequent comparison
+    rankings = {}
+
     for play in plays:
-        handle_play(play)
+        df_ranking = handle_play(play)
+        rankings[play] = df_ranking
+
+    correlation_matrices = calculate_correlation_matrices(rankings)
+
+    lower = correlation_matrices.pop('romeo-and-juliet')
+    upper = np.mean([m for m in correlation_matrices.values()], axis=0)
+
+    plot_correlation_matrices(
+        lower,
+        upper,
+        'Romeo \& Juliet',
+        'Corpus average'
+    )
