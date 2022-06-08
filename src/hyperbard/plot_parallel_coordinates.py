@@ -4,7 +4,9 @@ import os
 from glob import glob
 
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
+import seaborn as sns
 from cycler import cycler
 from matplotlib import cm
 from statics import DATA_PATH, GRAPHICS_PATH
@@ -54,6 +56,42 @@ def plot_character_rankings(character_ranking_df, save_path=None):
     plt.tight_layout()
     if save_path is not None:
         plt.savefig(save_path, transparent=True, bbox_inches="tight", backend="pgf")
+        plt.close()
+    else:
+        plt.show()
+
+
+def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=None):
+    vmin = min(upper.min().min(), lower.min().min())
+
+    sns.heatmap(
+        upper,
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.tril(upper, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+        cbar=False,
+    )
+    sns.heatmap(
+        lower,
+        square=True,
+        cmap=cm.Reds,
+        cbar_kws=dict(shrink=0.8),
+        mask=np.triu(lower.values, k=0).astype(
+            bool
+        ),
+        vmin=vmin,
+        vmax=1.0,
+    )
+
+    plt.title(f"lower triangle: {lower_name}, upper triangle: {upper_name}")
+
+    if save_path is not None:
+        plt.savefig(save_path, transparent=True, backend="pgf", bbox_inches="tight")
         plt.close()
     else:
         plt.show()
@@ -153,15 +191,49 @@ def handle_play(play):
         df_ranking,
         save_path=os.path.join(
             f"{GRAPHICS_PATH}", f"{play}_ranking_parallel_coordinates.pdf"
-        ),
+        )
     )
 
+    return df_ranking
 
-if __name__ == "__main__":
+
+def calculate_correlation_matrices(rankings):
+    """Calculate correlation matrices from dictionary of data frames."""
+    correlation_matrices = {}
+
+    for play, ranking in rankings.items():
+        ranking = ranking.set_index("index")
+        correlations = ranking.corr("spearman")
+
+        correlation_matrices[play] = correlations
+
+    return correlation_matrices
+
+
+if __name__ == '__main__':
     plays = [
-        get_filename_base(fn).replace(".agg", "")
+        get_filename_base(fn).replace('.agg', '')
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     ]
 
+    # Store rankings for subsequent comparison
+    rankings = {}
+
     for play in plays:
-        handle_play(play)
+        df_ranking = handle_play(play)
+        rankings[play] = df_ranking
+
+    correlation_matrices = calculate_correlation_matrices(rankings)
+
+    lower = correlation_matrices.pop('romeo-and-juliet')
+    upper = np.mean([m for m in correlation_matrices.values()], axis=0)
+
+    plot_correlation_matrices(
+        lower,
+        upper,
+        'Romeo \\& Juliet',
+        'Corpus average',
+        os.path.join(
+            f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"
+        )
+    )

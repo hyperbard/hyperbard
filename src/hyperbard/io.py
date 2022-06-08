@@ -5,6 +5,7 @@ import re
 
 import networkx as nx
 import pandas as pd
+
 from statics import GRAPHDATA_PATH
 
 

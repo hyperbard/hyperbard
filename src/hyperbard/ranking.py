@@ -287,4 +287,5 @@ def get_character_ranking(representations):
         )
         .reset_index()
     )
+
     return rank_df.sort_values(by=rank_df.columns[-1])
