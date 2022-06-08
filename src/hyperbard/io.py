@@ -76,8 +76,16 @@ def load_graph(play, representation, edge_weights=None):
     nodes = nodes.query("not node.str.isupper()")
     edges = edges.query("not node1.str.isupper() and not node2.str.isupper()")
 
+    # Check type of graph to create in order to potentially support
+    # multi-edges.
+    prop_type = representation.split("-")[2]
+
     if agg_type != "speech":
-        G = nx.Graph()
+
+        if prop_type.startswith("m"):
+            G = nx.MultiGraph()
+        else:
+            G = nx.Graph()
 
         if graph_type == "ce":
             G.add_nodes_from(nodes.node)
@@ -85,9 +93,6 @@ def load_graph(play, representation, edge_weights=None):
             G.add_nodes_from(edges.node1, node_type="character")
             G.add_nodes_from(edges.node2, node_type="text_unit")
     else:
-        # Check type of graph to create in order to potentially support
-        # multi-edges.
-        prop_type = representation.split("-")[2]
 
         if prop_type.startswith("m"):
             G = nx.MultiDiGraph()
