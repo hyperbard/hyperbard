@@ -126,10 +126,10 @@ def calculate_degree(G, weight=None, degree_type=None):
         character_nodes = [
             n for n, node_type in G.nodes(data="node_type") if node_type == "character"
         ]
-        if isinstance(G, nx.Graph):
+        if type(G) == nx.Graph:
             degrees = dict(G.degree(character_nodes, weight=weight))
         # TODO: Check whether `DiGraphs` are supported correctly
-        elif isinstance(G, nx.DiGraph) or isinstance(G, nx.MultiDiGraph):
+        elif type(G) in [nx.DiGraph, nx.MultiDiGraph]:
             if degree_type == "out":
                 degree_func = G.out_degree
             elif degree_type == "in":
