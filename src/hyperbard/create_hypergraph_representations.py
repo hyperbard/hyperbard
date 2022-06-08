@@ -1,4 +1,5 @@
 import os
+import time
 from collections import OrderedDict
 from glob import glob
 
@@ -10,7 +11,7 @@ from hyperbard.hypergraph_representations import (
     get_multi_directed_hypergraph_edges,
     get_weighted_directed_hypergraph_edges,
 )
-from hyperbard.statics import DATA_PATH, GRAPHDATA_PATH
+from hyperbard.statics import DATA_PATH, GRAPHDATA_PATH, RESOURCE_USAGE_PATH
 from hyperbard.utils import get_filename_base
 
 
@@ -61,8 +62,12 @@ if __name__ == "__main__":
     files = sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     print(f"Found {len(files)} files to process.")
     os.makedirs(GRAPHDATA_PATH, exist_ok=True)
+    os.makedirs(RESOURCE_USAGE_PATH, exist_ok=True)
+    timefile = f"{RESOURCE_USAGE_PATH}/{__file__[:-2].split('/')[-1]}.txt"
 
+    start = time.time()
     for file in files:
         handle_file(file)
-    # with Pool(cpu_count() - 3) as p:
-    #     p.map(handle_file, files)
+    finish = time.time()
+    with open(timefile, "w") as f:
+        f.write(f"{os.path.basename(__file__)}, {finish - start}")

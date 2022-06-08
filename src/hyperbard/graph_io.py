@@ -6,7 +6,6 @@ import re
 import hypernetx as hnx
 import networkx as nx
 import pandas as pd
-
 from statics import GRAPHDATA_PATH
 
 
@@ -135,17 +134,14 @@ def load_hypergraph(play, representation, edge_weights=None):
     hypergraph_type = representation.split("-")[0]
     agg_type = representation.split("-")[1]
 
-    assert hypergraph_type == "hg", \
-        RuntimeError("Expecting hypergraph representation")
+    assert hypergraph_type == "hg", RuntimeError("Expecting hypergraph representation")
 
-    edges_file = os.path.join(
-        GRAPHDATA_PATH, f"{play}_{representation}.edges.csv"
-    )
+    edges_file = os.path.join(GRAPHDATA_PATH, f"{play}_{representation}.edges.csv")
     edges = pd.read_csv(edges_file)
 
     edges.onstage = edges.onstage.map(
         lambda x: list(map(prettify_identifier, x.split()))
-    ).map(lambda onstage:[x for x in onstage if not x.isupper()])
+    ).map(lambda onstage: [x for x in onstage if not x.isupper()])
 
     H = hnx.Hypergraph()
     for idx, row in edges.iterrows():
