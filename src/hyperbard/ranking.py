@@ -222,12 +222,12 @@ def get_character_ranking_df(df):
             ),
             "05_se-speech-wd_in": character_rank_dictionary(
                 degree_ranking_with_equalities(
-                    bG3, weight="n_lines", degree="in"
+                    bG3, weight="n_lines", degree_type="in"
                 )
             ),
             "06_se-speech-wd_out": character_rank_dictionary(
                 degree_ranking_with_equalities(
-                    bG3, weight="n_lines", degree="out"
+                    bG3, weight="n_lines", degree_type="out"
                 )
             ),
             "07_ce-scene-b": character_rank_dictionary(
@@ -248,18 +248,18 @@ def get_character_ranking_df(df):
             "12_act_group-mw": character_rank_dictionary(
                 degree_ranking_with_equalities(mG2, weight="n_lines")
             ),
-            "13_hg-scene-mb": character_rank_dictionary(
-                degree_ranking_with_equalities(hg_scene_mw)
-            ),
-            "14_hg-scene-mw": character_rank_dictionary(
-                degree_ranking_with_equalities(hg_scene_mw, weight="n_lines")
-            ),
-            "15_hg-group-mb": character_rank_dictionary(
-                degree_ranking_with_equalities(hg_group_mw)
-            ),
-            "16_hg-group-mw": character_rank_dictionary(
-                degree_ranking_with_equalities(hg_group_mw, weight="n_lines")
-            ),
+            #"13_hg-scene-mb": character_rank_dictionary(
+            #    degree_ranking_with_equalities(hg_scene_mw)
+            #),
+            #"14_hg-scene-mw": character_rank_dictionary(
+            #    degree_ranking_with_equalities(hg_scene_mw, weight="n_lines")
+            #),
+            #"15_hg-group-mb": character_rank_dictionary(
+            #    degree_ranking_with_equalities(hg_group_mw)
+            #),
+            #"16_hg-group-mw": character_rank_dictionary(
+            #    degree_ranking_with_equalities(hg_group_mw, weight="n_lines")
+            #),
         }
     )
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
@@ -283,5 +283,8 @@ def get_character_ranking(representations):
             )
         )
 
-    rank_df = pd.DataFrame.from_records(ranks).reset_index()
+    rank_df = pd.DataFrame.from_records(ranks).rename(
+        # Rename columns by dropping the 'XX-' prefix.
+        mapper=lambda x: '-'.join(x.split('-')[1:]), axis='columns'
+    ).reset_index()
     return rank_df.sort_values(by=rank_df.columns[-1])
