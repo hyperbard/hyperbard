@@ -144,32 +144,32 @@ def calculate_degree(G, weight=None, degree_type=None):
     return degrees
 
 
-def degree_wrapper(G, weight=None, degree_type=None):
+def degree_wrapper(G, weight=None, degree_type=None, **kwargs):
     """Wrapper function for degree calculation of (hyper)graphs."""
     if isinstance(G, hnx.Hypergraph):
         # TODO: Incorporate `degree_type` variable.
-        return s_degree(G, s=1, weight=weight)
+        return s_degree(G, weight=weight, **kwargs)
     else:
         return calculate_degree(G, weight=weight, degree_type=degree_type)
 
 
-def degree_ranking(G, weight=None, degree_type=None):
+def degree_ranking(G, weight=None, degree_type=None, **kwargs):
     """
     degree: None or "in" or "out"
     """
     return sorted(
-        degree_wrapper(G, weight, degree_type).items(),
+        degree_wrapper(G, weight, degree_type, **kwargs).items(),
         key=lambda tup: tup[-1],
         reverse=True,
     )
 
 
-def degree_ranking_with_equalities(G, weight=None, degree_type=None):
+def degree_ranking_with_equalities(G, weight=None, degree_type=None, **kwargs):
     """
     degree: None or "in" or "out"
     output: list of tuples [({set of characters}, degree), ...], sorted by degree descending
     """
-    ranking_list = degree_ranking(G, weight, degree_type)
+    ranking_list = degree_ranking(G, weight, degree_type, **kwargs)
     new_list = []
     for character, degree in ranking_list:
         if new_list and degree == new_list[-1][-1]:
@@ -273,9 +273,18 @@ def get_character_ranking(representations):
         graph = representation["graph"]
         weight = representation.get("weight", None)
         degree = representation.get("degree", None)
+        s = representation.get("s", 1)
+        superlevel = representation.get("superlevel", True)
 
         ranks[name] = character_rank_dictionary(
-            degree_ranking_with_equalities(graph, weight=weight, degree_type=degree)
+            degree_ranking_with_equalities(
+                graph,
+                weight=weight,
+                degree_type=degree,
+                # Will be ignored for graphs
+                s=s,
+                superlevel=superlevel
+            )
         )
 
     rank_df = (
