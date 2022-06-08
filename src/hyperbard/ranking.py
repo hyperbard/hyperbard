@@ -1,4 +1,9 @@
-"""Simple summary statistics for hypergraphs."""
+"""Ranking for (hyper)graphs.
+
+Notice that while other metrics, such as different centrality measures,
+would be possible, we are focusing on *degree* statistics for now since
+they are readily interpretable for both graphs and hypergraphs.
+"""
 
 from collections import OrderedDict, defaultdict
 
@@ -21,7 +26,7 @@ from hyperbard.hypergraph_representations import (
 )
 
 
-# TODO: Discuss
+# TODO: WIP
 def from_edges(df_grouped):
     H = hnx.Hypergraph()
     for idx, row in df_grouped.iterrows():
@@ -33,82 +38,6 @@ def from_edges(df_grouped):
             )
         )
     return H
-
-
-def s_degree_centrality(H, s=1, weight=None):
-    """Calculate degree centrality values of a hypergraph."""
-    values = {}
-    for node in H.nodes:
-        values[node] = H.degree(node, s=s)
-
-        if weight is not None:
-            # Get all edges of size at least `s` in which the specific
-            # node participates.
-            memberships = H.nodes[node].memberships
-            edges = set(e for e in memberships if len(H.edges[e]) >= s)
-
-            # Just to be sure this does not come back and bite us...
-            assert len(edges) == values[node]
-
-            values[node] = sum(getattr(H.edges[e], weight) for e in edges)
-
-    return values
-
-
-def degree_centrality(G, weight=None, centrality=None):
-    """Wrapper function for degree centrality of (hyper)graphs."""
-    if isinstance(G, hnx.Hypergraph):
-        return degree_centrality_hypergraph(G, weight=weight, centrality=centrality)
-    else:
-        return degree_centrality_graph(G, weight=weight, centrality=centrality)
-
-
-def degree_centrality_graph(G, weight=None, centrality=None):
-    """
-    centrality: None or "in" or "out"
-    Wrapper around nx.degree_centrality that allows to account for weights.
-    When weight attribute is specified, returns fraction of degree sum in which node participates.
-    """
-    # Defenses against garbage input
-    if centrality not in [None, "in", "out"]:
-        raise ValueError(f"centrality={centrality}, must be in {[None, 'in', 'out']}!")
-    if centrality is not None and type(G) not in [nx.DiGraph, nx.MultiDiGraph]:
-        raise ValueError(
-            f"type(G)={type(G)}, must be in {[nx.DiGraph, nx.MultiDiGraph]} because centrality={centrality}!"
-        )
-    # Actual centrality computation
-    if weight is not None:
-        assert (
-            weight in list(G.edges(data=True))[0][-1].keys()
-        ), f"Attribute '{weight}'\
-            is not an edge attribute! Edge attributes are: {list(list(G.edges(data=True))[0][-1].keys())}"
-    if "node_type" not in list(dict(G.nodes(data=True)).values())[0].keys():
-        if weight is None:
-            centrality = nx.degree_centrality(G)
-        else:
-            s = 1.0 / sum(dict(G.degree(weight=weight)).values())
-            centrality = {n: d * s for n, d in G.degree(weight=weight)}
-    else:
-        character_nodes = [
-            n for n, node_type in G.nodes(data="node_type") if node_type == "character"
-        ]
-        if type(G) == nx.Graph:
-            s = 1.0 / sum(dict(G.degree(character_nodes, weight=weight)).values())
-            centrality = {n: d * s for n, d in G.degree(character_nodes, weight=weight)}
-        elif type(G) == nx.MultiDiGraph:
-            if centrality == "out":
-                degree_func = G.out_degree
-            elif centrality == "in":
-                degree_func = G.in_degree
-            else:
-                degree_func = G.degree
-            s = 1.0 / sum(dict(degree_func(character_nodes, weight=weight)).values())
-            centrality = {
-                n: d * s for n, d in degree_func(character_nodes, weight=weight)
-            }
-        else:
-            raise NotImplementedError(f"Unexpected graph type: {type(G)}!")
-    return centrality
 
 
 def s_degree(H, s=1, weight=None, superlevel=True):
@@ -156,7 +85,8 @@ def s_degree(H, s=1, weight=None, superlevel=True):
     return values
 
 
-# TODO: Ignoring `degree` parameter
+# TODO: Ignoring `degree` parameter; should indicate whether "in" or
+# "out" degree is supposed to be calculated.
 def degree_hypergraph(H, weight=None, degree=None):
     values = s_degree(H, s=1, weight=weight)
     return values
@@ -206,54 +136,6 @@ def degree_graph(G, weight=None, degree=None):
     return degrees
 
 
-# TODO: Ignoring most of the input parameters at the moment.
-def degree_centrality_hypergraph(H, weight=None, centrality=None):
-    # Auxiliary function for normalising a dictionary (or really any
-    # other type of key--value store).
-    def _normalise(d):
-        factor = sum(d.values())
-        if factor > 0:
-            return {k: v / factor for k, v in d.items()}
-        else:
-            return d
-
-    # TODO: Make configurable?
-    normalise = True
-
-    # Store centrality values for each node. Since we are iterating over
-    # different `s` connectivity values, multiple centrality values will
-    # be stored and have to be aggregated later.
-    centrality = defaultdict(list)
-
-    # TODO: Make configurable? I have not yet found a way to query the
-    # hypergraph about its maximum $s$-connectivity.
-    for s in [1, 2, 5]:
-        values = s_degree_centrality(H, s=s, weight=weight)
-
-        if normalise:
-            values = _normalise(values)
-
-        for k, v in values.items():
-            centrality[k].append(v)
-
-    # TODO: Make configurable
-    agg_fn = np.sum
-
-    centrality = {k: agg_fn(v) for k, v in centrality.items()}
-
-    return centrality
-
-
-def centrality_ranking(G, weight=None, centrality=None):
-    """
-    centrality: None or "in" or "out"
-    """
-    return sorted(
-        degree_centrality(G, weight, centrality).items(),
-        key=lambda tup: tup[-1],
-        reverse=True,
-    )
-
 def degree_wrapper(G, weight=None, degree=None):
     """Wrapper function for degree calculation of (hyper)graphs."""
     if isinstance(G, hnx.Hypergraph):
@@ -285,21 +167,6 @@ def degree_ranking_with_equalities(G, weight=None, degree=None):
             new_list[-1][0].add(character)
         else:
             new_list.append(({character}, degree))
-    return new_list
-
-
-def centrality_ranking_with_equalities(G, weight=None, centrality=None):
-    """
-    centrality: None or "in" or "out"
-    output: list of tuples [({set of characters}, centrality), ...], sorted by centrality descending
-    """
-    ranking_list = centrality_ranking(G, weight, centrality)
-    new_list = []
-    for character, centrality in ranking_list:
-        if new_list and centrality == new_list[-1][-1]:
-            new_list[-1][0].add(character)
-        else:
-            new_list.append(({character}, centrality))
     return new_list
 
 
