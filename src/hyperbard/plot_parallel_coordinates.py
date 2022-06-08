@@ -1,7 +1,50 @@
 """Parallel coordinate plotting script (ranking of characters)."""
 
+import pandas as pd
+
+from cycler import cycler
+from matplotlib import cm
+
 from hyperbard.io import load_graph
 from hyperbard.ranking import get_character_ranking
+from hyperbard.utils import get_name_from_identifier
+
+import matplotlib.pyplot as plt
+
+
+
+def plot_character_rankings(character_ranking_df, save_path=None):
+    fig, ax = plt.subplots(
+        1,
+        1,
+        figsize=(
+            3 * (len(character_ranking_df.columns) - 1),
+            9 + len(character_ranking_df) // 10,
+        ),
+    )
+    custom_cycler = cycler(linestyle=["-", "--", ":", "-."]) * cycler(
+        marker=["^", ">", "v", "<"]
+    )
+    cmap = lambda i: cm.tab20c(i) if i % 2 == 0 else cm.tab20b(i)
+    ax.set_prop_cycle(custom_cycler)
+    pd.plotting.parallel_coordinates(
+        character_ranking_df,
+        class_column="index",
+        colormap=cmap,
+        ax=ax,
+        alpha=0.5,
+    )
+    ax.invert_yaxis()
+    labels = [
+        get_name_from_identifier(elem.get_text()) for elem in ax.legend().get_texts()
+    ]
+    plt.legend(loc=(1, 0), labels=labels)
+    plt.tight_layout()
+    if save_path is not None:
+        plt.savefig(save_path, transparent=True, bbox_inches="tight", backend="pgf")
+        plt.close()
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
@@ -82,3 +125,5 @@ if __name__ == '__main__':
 
     df_ranking = get_character_ranking(representations)
     print(df_ranking)
+
+    plot_character_rankings(df_ranking)
