@@ -110,7 +110,6 @@ def handle_play(play):
     se_group = load_graph(play, "se-group-w", "n_lines")
 
     se_speech = load_graph(play, "se-speech-wd", "n_lines")
-    se_speech_m = load_graph(play, "se-speech-mwd", "n_lines")
 
     representations = [
         {
@@ -142,48 +141,36 @@ def handle_play(play):
             "weight": "n_lines",
         },
         {
-            "name": "07_se-scene-b",
+            "name": "07-se-scene-b",
             "graph": se_scene,
         },
         {
-            "name": "08_se-scene-w",
+            "name": "08-se-scene-w",
             "graph": se_scene,
             "weight": "n_lines",
         },
         {
-            "name": "09_se-group-b",
+            "name": "09-se-group-b",
             "graph": se_group,
         },
         {
-            "name": "10_se-group-w",
+            "name": "10-se-group-w",
             "graph": se_group,
             "weight": "n_lines",
         },
         {
-            "name": "11_se-speech-wd_in",
+            "name": "11-se-speech-wd_in",
             "graph": se_speech,
             "weight": "n_lines",
             "degree": "in",
         },
         {
-            "name": "12_se-speech-wd_out",
+            "name": "12-se-speech-wd_out",
             "graph": se_speech,
             "weight": "n_lines",
             "degree": "out",
         },
-        {
-            "name": "13_se-speech-mwd_in",
-            "graph": se_speech_m,
-            "weight": "n_lines",
-            "degree": "in",
-        },
-        {
-            "name": "14_se-speech-mwd_out",
-            "graph": se_speech_m,
-            "weight": "n_lines",
-            "degree": "out",
-        },
-    ]
+      ]
 
     df_ranking = get_character_ranking(representations)
 
