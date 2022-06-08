@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 from cycler import cycler
 from matplotlib import cm
-from statics import DATA_PATH, GRAPHICS_PATH
+from statics import DATA_PATH, GRAPHICS_PATH, META_PATH
 
 from hyperbard.io import load_graph
 from hyperbard.ranking import get_character_ranking
@@ -221,6 +221,12 @@ if __name__ == '__main__':
 
     for play in plays:
         df_ranking = handle_play(play)
+
+        df_ranking.to_csv(
+            os.path.join(f"{META_PATH}", f"{play}_ranking.csv"),
+            index=False
+        )
+
         rankings[play] = df_ranking
 
     correlation_matrices = calculate_correlation_matrices(rankings)
