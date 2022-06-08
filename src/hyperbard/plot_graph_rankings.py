@@ -67,7 +67,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
     sns.heatmap(
         upper,
         square=True,
-        cmap=cm.Reds,
+        cmap=cm.RdYlGn,
         cbar_kws=dict(shrink=0.8),
         mask=np.tril(upper, k=0).astype(
             bool
@@ -79,7 +79,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
     sns.heatmap(
         lower,
         square=True,
-        cmap=cm.Reds,
+        cmap=cm.Greys,
         cbar_kws=dict(shrink=0.8),
         mask=np.triu(lower.values, k=0).astype(
             bool
@@ -219,13 +219,13 @@ if __name__ == '__main__':
     correlation_matrices = calculate_correlation_matrices(rankings)
 
     lower = correlation_matrices.pop('romeo-and-juliet')
-    upper = np.mean([m for m in correlation_matrices.values()], axis=0)
+    upper = lower - np.mean([m for m in correlation_matrices.values()], axis=0)
 
     plot_correlation_matrices(
         lower,
         upper,
         'Romeo \\& Juliet',
-        'Corpus average',
+        'Difference to corpus average',
         os.path.join(
             f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"
         )
