@@ -41,7 +41,7 @@ def from_edges(df_grouped):
 
 
 def s_degree(H, s=1, weight=None, superlevel=True):
-    """Calculate degree  values of a hypergraph.
+    """Calculate degree values of a hypergraph.
 
     This function calculates the (weighted) degree of a hypergraph,
     focusing either on edges of cardinality at least `s` or at most
@@ -85,23 +85,29 @@ def s_degree(H, s=1, weight=None, superlevel=True):
     return values
 
 
-# TODO: Ignoring `degree` parameter; should indicate whether "in" or
-# "out" degree is supposed to be calculated.
-def degree_hypergraph(H, weight=None, degree=None):
-    values = s_degree(H, s=1, weight=weight)
-    return values
+def calculate_degree(G, weight=None, degree_type=None):
+    """Calculate degree values of a graph.
 
+    This is essentially a wrapper function around `nx.degree` that is
+    capable of accounting for weights.
 
-def degree_graph(G, weight=None, degree=None):
-    """
+    Parameters
+    ----------
     degree: None or "in" or "out"
-    Wrapper around nx.degree that allows to account for weights.
-    When weight attribute is specified, returns weighted degree sum in which node participates.
+
+    weight : None or str
+        If specified, access edge attribute named `weight` to calculate
+        weighted degrees.
+
+    Returns
+    -------
+    dict
+        Dictionary with nodes as key and (weighted) degrees as values.
     """
     # Defenses against garbage input
-    if degree not in [None, "in", "out"]:
-        raise ValueError(f"degree={degree}, must be in {[None, 'in', 'out']}!")
-    if degree is not None and type(G) not in [nx.DiGraph, nx.MultiDiGraph]:
+    if degree_type not in [None, "in", "out"]:
+        raise ValueError(f"degree_type={degree_type}, must be in {[None, 'in', 'out']}!")
+    if degree_type is not None and type(G) not in [nx.DiGraph, nx.MultiDiGraph]:
         raise ValueError(
             f"type(G)={type(G)}, must be in {[nx.DiGraph, nx.MultiDiGraph]} because degree={degree}!"
         )
@@ -123,9 +129,9 @@ def degree_graph(G, weight=None, degree=None):
         if type(G) == nx.Graph:
             degrees = dict(G.degree(character_nodes, weight=weight))
         elif type(G) == nx.MultiDiGraph:
-            if degree == "out":
+            if degree_type == "out":
                 degree_func = G.out_degree
-            elif degree == "in":
+            elif degree_type == "in":
                 degree_func = G.in_degree
             else:
                 degree_func = G.degree
@@ -136,20 +142,21 @@ def degree_graph(G, weight=None, degree=None):
     return degrees
 
 
-def degree_wrapper(G, weight=None, degree=None):
+def degree_wrapper(G, weight=None, degree_type=None):
     """Wrapper function for degree calculation of (hyper)graphs."""
     if isinstance(G, hnx.Hypergraph):
-        return degree_hypergraph(G, weight=weight, degree=degree)
+        # TODO: Incorporate `degree_type` variable.
+        return s_degree(G, s=1, weight=weight)
     else:
-        return degree_graph(G, weight=weight, degree=degree)
+        return calculate_degree(G, weight=weight, degree_type=degree_type)
 
 
-def degree_ranking(G, weight=None, degree=None):
+def degree_ranking(G, weight=None, degree_type=None):
     """
     degree: None or "in" or "out"
     """
     return sorted(
-        degree_wrapper(G, weight, degree).items(),
+        degree_wrapper(G, weight, degree_type).items(),
         key=lambda tup: tup[-1],
         reverse=True,
     )
