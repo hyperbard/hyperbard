@@ -126,9 +126,10 @@ def calculate_degree(G, weight=None, degree_type=None):
         character_nodes = [
             n for n, node_type in G.nodes(data="node_type") if node_type == "character"
         ]
-        if type(G) == nx.Graph:
+        if isinstance(G, nx.Graph):
             degrees = dict(G.degree(character_nodes, weight=weight))
-        elif type(G) == nx.MultiDiGraph:
+        # TODO: Check whether `DiGraphs` are supported correctly
+        elif isinstance(G, nx.DiGraph) or isinstance(G, nx.MultiDiGraph):
             if degree_type == "out":
                 degree_func = G.out_degree
             elif degree_type == "in":
@@ -271,9 +272,14 @@ def get_character_ranking(representations):
         name = representation['name']
         graph = representation['graph']
         weight = representation.get('weight', None)
+        degree = representation.get('degree', None)
 
         ranks[name] = character_rank_dictionary(
-            degree_ranking_with_equalities(graph, weight)
+            degree_ranking_with_equalities(
+                graph,
+                weight=weight,
+                degree_type=degree
+            )
         )
 
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
