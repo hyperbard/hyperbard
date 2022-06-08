@@ -43,6 +43,8 @@ def load_graph(play, representation, edge_weights=None):
     # Get nice character names to stay more true to the raw data instead
     # of spewing out additional tokens.
     nodes.node = nodes.node.map(prettify_identifier)
+    edges.node1 = edges.node1.map(prettify_identifier)
+    edges.node2 = edges.node2.map(prettify_identifier)
 
     G = nx.Graph()
     G.add_nodes_from(nodes.node)
@@ -54,5 +56,8 @@ def load_graph(play, representation, edge_weights=None):
             zip(edges.node1, edges.node2, edges[edge_weights])
         )
 
+    print(nodes)
+    print(edges)
     print(G)
+
     return G
