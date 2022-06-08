@@ -1,6 +1,7 @@
 """I/O routines for graphs and hypergraphs."""
 
 import os
+import re
 
 import networkx as nx
 import pandas as pd
@@ -8,7 +9,13 @@ import pandas as pd
 from statics import GRAPHDATA_PATH
 
 def prettify_identifier(identifier):
-    return identifier.replace("#", "").split("_")[0]
+    """Return pretty identifier (character name)."""
+    identifier = identifier.replace("#", "").split("_")[0]
+    # Remove any prefixes that precede the current one if they are
+    # written in capital letters. This removes "SERVANTS.CAPULET."
+    # in Romeo & Juliet, for instance.
+    identifier = re.sub(r"[A-Z\.]*([A-Z])", r"\1", identifier)
+    return identifier
 
 
 def load_graph(play, representation, edge_weights=None):
