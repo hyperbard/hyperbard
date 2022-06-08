@@ -85,7 +85,14 @@ def load_graph(play, representation, edge_weights=None):
             G.add_nodes_from(edges.node1, node_type="character")
             G.add_nodes_from(edges.node2, node_type="text_unit")
     else:
-        G = nx.DiGraph()
+        # Check type of graph to create in order to potentially support
+        # multi-edges.
+        prop_type = representation.split("-")[2]
+
+        if prop_type.startswith("m"):
+            G = nx.MultiDiGraph()
+        else:
+            G = nx.DiGraph()
 
         for _, row in nodes.iterrows():
             G.add_node(row.node, node_type=row["node_type"])
