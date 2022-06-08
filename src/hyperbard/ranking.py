@@ -268,6 +268,7 @@ def get_character_ranking_df(df):
 
 def get_character_ranking(representations):
     ranks = OrderedDict()
+
     for representation in representations:
         name = representation['name']
         graph = representation['graph']
