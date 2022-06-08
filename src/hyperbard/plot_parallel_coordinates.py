@@ -83,7 +83,6 @@ def handle_play(play):
             'graph': ce_scene_b,
         },
         {
-            # TODO: Is this correct?
             'name': '02-ce-scene-mb',
             'graph': ce_scene_b,
             'weight': 'count',
