@@ -147,16 +147,14 @@ def load_hypergraph(play, representation, edge_weights=None):
         lambda x: list(map(prettify_identifier, x.split()))
     ).map(lambda onstage:[x for x in onstage if not x.isupper()])
 
-    print(edges)
+    H = hnx.Hypergraph()
+    for idx, row in edges.iterrows():
+        H.add_edge(
+            hnx.Entity(
+                idx,
+                row["onstage"],
+                **{k: v for k, v in row.items() if k != "onstage"},
+            )
+        )
 
-    #def get_hypergraph(df_grouped):
-    #    H = hnx.Hypergraph()
-    #    for idx, row in df_grouped.iterrows():
-    #        H.add_edge(
-    #            hnx.Entity(
-    #                idx,
-    #                row["onstage"],
-    #                **{k: v for k, v in row.items() if k != "onstage"},
-    #            )
-    #        )
-    #    return H
+    return H
