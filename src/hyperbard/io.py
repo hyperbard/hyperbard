@@ -64,6 +64,9 @@ def load_graph(play, representation, edge_weights=None):
     edges.node2 = edges.node2.astype(str)
     edges.node2 = edges.node2.map(prettify_identifier)
 
+    nodes = nodes.query('not node.str.isupper()')
+    edges = edges.query('not node1.str.isupper() and not node2.str.isupper()')
+
     if agg_type != 'speech':
         G = nx.Graph()
 
@@ -86,5 +89,4 @@ def load_graph(play, representation, edge_weights=None):
             weight=edge_weights,
         )
 
-    print(G.nodes)
     return G

@@ -64,7 +64,7 @@ if __name__ == '__main__':
     ce_scene_b = load_graph(play, 'ce-scene-w', 'count')
     ce_scene_m = load_graph(play, 'ce-scene-mw', 'n_lines')
 
-    ce_group_b = load_graph(play, 'ce-group-w')
+    ce_group_b = load_graph(play, 'ce-group-w', 'count')
     ce_group_m = load_graph(play, 'ce-group-mw', 'n_lines')
 
     representations = [
@@ -105,7 +105,8 @@ if __name__ == '__main__':
         {
             # TODO: Is this correct?
             'name': '08_ce-scene-mb',
-            'graph': ce_scene_m,
+            'graph': ce_scene_b,
+            'weight': 'count',
         },
         {
             'name': '09_ce-scene-mw',
@@ -118,7 +119,8 @@ if __name__ == '__main__':
         },
         {
             'name': '11-ce-group-mb',
-            'graph': ce_group_m,
+            'graph': ce_group_b,
+            'weight': 'count',
         },
         {
             'name': '12-ce-group-mw',
@@ -128,6 +130,4 @@ if __name__ == '__main__':
     ]
 
     df_ranking = get_character_ranking(representations)
-    print(df_ranking)
-
     plot_character_rankings(df_ranking)
