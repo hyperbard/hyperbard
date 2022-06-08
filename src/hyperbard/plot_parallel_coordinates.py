@@ -234,6 +234,9 @@ if __name__ == '__main__':
     plot_correlation_matrices(
         lower,
         upper,
-        'Romeo \& Juliet',
-        'Corpus average'
+        'Romeo & Juliet',
+        'Corpus average',
+        os.path.join(
+            f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"
+        )
     )

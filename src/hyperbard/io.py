@@ -8,6 +8,7 @@ import pandas as pd
 
 from statics import GRAPHDATA_PATH
 
+
 def prettify_identifier(identifier):
     """Return pretty identifier (character name)."""
     identifier = identifier.replace("#", "").split("_")[0]
