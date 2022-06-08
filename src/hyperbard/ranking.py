@@ -21,6 +21,20 @@ from hyperbard.hypergraph_representations import (
 )
 
 
+# TODO: Discuss
+def from_edges(df_grouped):
+    H = hnx.Hypergraph()
+    for idx, row in df_grouped.iterrows():
+        H.add_edge(
+            hnx.Entity(
+                idx,
+                row["onstage"],
+                **{k: v for k, v in row.items() if k != "onstage"},
+            )
+        )
+    return H
+
+
 def s_degree_centrality(H, s=1, weight=None):
     """Calculate degree centrality values of a hypergraph."""
     values = {}
@@ -142,9 +156,54 @@ def s_degree(H, s=1, weight=None, superlevel=True):
     return values
 
 
-def degree_hypergraph(H, weight=None, centrality=None):
+# TODO: Ignoring `degree` parameter
+def degree_hypergraph(H, weight=None, degree=None):
     values = s_degree(H, s=1, weight=weight)
     return values
+
+
+def degree_graph(G, weight=None, degree=None):
+    """
+    degree: None or "in" or "out"
+    Wrapper around nx.degree that allows to account for weights.
+    When weight attribute is specified, returns weighted degree sum in which node participates.
+    """
+    # Defenses against garbage input
+    if degree not in [None, "in", "out"]:
+        raise ValueError(f"degree={degree}, must be in {[None, 'in', 'out']}!")
+    if degree is not None and type(G) not in [nx.DiGraph, nx.MultiDiGraph]:
+        raise ValueError(
+            f"type(G)={type(G)}, must be in {[nx.DiGraph, nx.MultiDiGraph]} because degree={degree}!"
+        )
+    # Actual degree computation
+    if weight is not None:
+        assert (
+            weight in list(G.edges(data=True))[0][-1].keys()
+        ), f"Attribute '{weight}'\
+            is not an edge attribute! Edge attributes are: {list(list(G.edges(data=True))[0][-1].keys())}"
+    if "node_type" not in list(dict(G.nodes(data=True)).values())[0].keys():
+        if weight is None:
+            degrees = dict(nx.degree(G))
+        else:
+            degrees = dict(nx.degree(G, weight=weight))
+    else:
+        character_nodes = [
+            n for n, node_type in G.nodes(data="node_type") if node_type == "character"
+        ]
+        if type(G) == nx.Graph:
+            degrees = dict(G.degree(character_nodes, weight=weight))
+        elif type(G) == nx.MultiDiGraph:
+            if degree == "out":
+                degree_func = G.out_degree
+            elif degree == "in":
+                degree_func = G.in_degree
+            else:
+                degree_func = G.degree
+            degrees = dict(degree_func(character_nodes, weight=weight))
+        else:
+            raise NotImplementedError(f"Unexpected graph type: {type(G)}!")
+
+    return degrees
 
 
 # TODO: Ignoring most of the input parameters at the moment.
@@ -195,6 +254,39 @@ def centrality_ranking(G, weight=None, centrality=None):
         reverse=True,
     )
 
+def degree_wrapper(G, weight=None, degree=None):
+    """Wrapper function for degree calculation of (hyper)graphs."""
+    if isinstance(G, hnx.Hypergraph):
+        return degree_hypergraph(G, weight=weight, degree=degree)
+    else:
+        return degree_graph(G, weight=weight, degree=degree)
+
+
+def degree_ranking(G, weight=None, degree=None):
+    """
+    degree: None or "in" or "out"
+    """
+    return sorted(
+        degree_wrapper(G, weight, degree).items(),
+        key=lambda tup: tup[-1],
+        reverse=True,
+    )
+
+
+def degree_ranking_with_equalities(G, weight=None, degree=None):
+    """
+    degree: None or "in" or "out"
+    output: list of tuples [({set of characters}, degree), ...], sorted by degree descending
+    """
+    ranking_list = degree_ranking(G, weight, degree)
+    new_list = []
+    for character, degree in ranking_list:
+        if new_list and degree == new_list[-1][-1]:
+            new_list[-1][0].add(character)
+        else:
+            new_list.append(({character}, degree))
+    return new_list
+
 
 def centrality_ranking_with_equalities(G, weight=None, centrality=None):
     """
@@ -231,61 +323,66 @@ def get_character_ranking_df(df):
     bG3 = get_bipartite_graph(
         df, groupby=["act", "scene", "stagegroup", "setting", "speaker"]
     )
-    hG1 = get_hypergraph(df, groupby=["act", "scene"])
-    hG2 = get_hypergraph(df, groupby=["act", "scene", "stagegroup"])
+
+    # TODO: Does *not* yet use the right weights.
+    hg_scene_mw = from_edges(get_hypergraph_edges(df, groupby=["act", "scene"])[0])
+    hg_group_mw = from_edges(get_hypergraph_edges(df, groupby=["act", "scene", "stagegroup"])[0])
+    hg_speech_mwd = from_edges(get_multi_directed_hypergraph_edges(df))
+    hg_speech_wd = from_edges(get_weighted_directed_hypergraph_edges(df))
+
     ranks = OrderedDict(
         {
             "01_se-scene-b": character_rank_dictionary(
-                centrality_ranking_with_equalities(bG)
+                degree_ranking_with_equalities(bG)
             ),
             "02_se-scene-w": character_rank_dictionary(
-                centrality_ranking_with_equalities(bG, weight="n_lines")
+                degree_ranking_with_equalities(bG, weight="n_lines")
             ),
             "03_se-group-b": character_rank_dictionary(
-                centrality_ranking_with_equalities(bG2)
+                degree_ranking_with_equalities(bG2)
             ),
             "04_se-group-w": character_rank_dictionary(
-                centrality_ranking_with_equalities(bG2, weight="n_lines")
+                degree_ranking_with_equalities(bG2, weight="n_lines")
             ),
             "05_se-speech-wd_in": character_rank_dictionary(
-                centrality_ranking_with_equalities(
-                    bG3, weight="n_lines", centrality="in"
+                degree_ranking_with_equalities(
+                    bG3, weight="n_lines", degree="in"
                 )
             ),
             "06_se-speech-wd_out": character_rank_dictionary(
-                centrality_ranking_with_equalities(
-                    bG3, weight="n_lines", centrality="out"
+                degree_ranking_with_equalities(
+                    bG3, weight="n_lines", degree="out"
                 )
             ),
             "07_ce-scene-b": character_rank_dictionary(
-                centrality_ranking_with_equalities(G)
+                degree_ranking_with_equalities(G)
             ),
             "08_ce-scene-mb": character_rank_dictionary(
-                centrality_ranking_with_equalities(mG)
+                degree_ranking_with_equalities(mG)
             ),
             "09_ce-scene-mw": character_rank_dictionary(
-                centrality_ranking_with_equalities(mG, weight="n_lines")
+                degree_ranking_with_equalities(mG, weight="n_lines")
             ),
             "10_ce-group-b": character_rank_dictionary(
-                centrality_ranking_with_equalities(G2)
+                degree_ranking_with_equalities(G2)
             ),
             "11_ce-group-mb": character_rank_dictionary(
-                centrality_ranking_with_equalities(mG2)
+                degree_ranking_with_equalities(mG2)
             ),
             "12_act_group-mw": character_rank_dictionary(
-                centrality_ranking_with_equalities(mG2, weight="n_lines")
+                degree_ranking_with_equalities(mG2, weight="n_lines")
             ),
             "13_hg-scene-mb": character_rank_dictionary(
-                centrality_ranking_with_equalities(hG1)
+                degree_ranking_with_equalities(hg_scene_mw)
             ),
             "14_hg-scene-mw": character_rank_dictionary(
-                centrality_ranking_with_equalities(hG1, weight="n_lines")
+                degree_ranking_with_equalities(hg_scene_mw, weight="n_lines")
             ),
             "15_hg-group-mb": character_rank_dictionary(
-                centrality_ranking_with_equalities(hG2)
+                degree_ranking_with_equalities(hg_group_mw)
             ),
             "16_hg-group-mw": character_rank_dictionary(
-                centrality_ranking_with_equalities(hG2, weight="n_lines")
+                degree_ranking_with_equalities(hg_group_mw, weight="n_lines")
             ),
         }
     )
