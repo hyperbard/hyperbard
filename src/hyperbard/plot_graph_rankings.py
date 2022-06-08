@@ -11,7 +11,7 @@ from cycler import cycler
 from matplotlib import cm
 from statics import DATA_PATH, GRAPHICS_PATH, META_PATH
 
-from hyperbard.io import load_graph
+from hyperbard.graph_io import load_graph
 from hyperbard.ranking import get_character_ranking
 from hyperbard.utils import get_filename_base, get_name_from_identifier
 
@@ -42,7 +42,9 @@ def plot_character_rankings(character_ranking_df, save_path=None):
         colormap=cmap,
         ax=ax,
         alpha=0.8,
-        lw=3,
+        lw=4,
+        sort_labels=True,
+        markersize=10,
     )
     ax.invert_yaxis()
     labels = [
@@ -53,7 +55,7 @@ def plot_character_rankings(character_ranking_df, save_path=None):
     frame = legend.get_frame()
     frame.set_edgecolor("black")
     frame.set_boxstyle("square", pad=0)
-    plt.tight_layout()
+    # plt.tight_layout()
     if save_path is not None:
         plt.savefig(save_path, transparent=True, bbox_inches="tight", backend="pgf")
         plt.close()
@@ -69,9 +71,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
         square=True,
         cmap=cm.RdYlGn,
         cbar_kws=dict(shrink=0.8),
-        mask=np.tril(upper, k=0).astype(
-            bool
-        ),
+        mask=np.tril(upper, k=0).astype(bool),
         vmin=vmin,
         vmax=1.0,
         cbar=False,
@@ -81,9 +81,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
         square=True,
         cmap=cm.Greys,
         cbar_kws=dict(shrink=0.8),
-        mask=np.triu(lower.values, k=0).astype(
-            bool
-        ),
+        mask=np.triu(lower.values, k=0).astype(bool),
         vmin=vmin,
         vmax=1.0,
     )
@@ -170,7 +168,7 @@ def handle_play(play):
             "weight": "n_lines",
             "degree": "out",
         },
-      ]
+    ]
 
     df_ranking = get_character_ranking(representations)
 
@@ -178,7 +176,7 @@ def handle_play(play):
         df_ranking,
         save_path=os.path.join(
             f"{GRAPHICS_PATH}", f"{play}_ranking_parallel_coordinates.pdf"
-        )
+        ),
     )
 
     return df_ranking
@@ -197,9 +195,10 @@ def calculate_correlation_matrices(rankings):
     return correlation_matrices
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
+    os.makedirs(GRAPHICS_PATH, exist_ok=True)
     plays = [
-        get_filename_base(fn).replace('.agg', '')
+        get_filename_base(fn).replace(".agg", "")
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     ]
 
@@ -210,23 +209,20 @@ if __name__ == '__main__':
         df_ranking = handle_play(play)
 
         df_ranking.to_csv(
-            os.path.join(f"{META_PATH}", f"{play}_ranking.csv"),
-            index=False
+            os.path.join(f"{META_PATH}", f"{play}_ranking.csv"), index=False
         )
 
         rankings[play] = df_ranking
 
     correlation_matrices = calculate_correlation_matrices(rankings)
 
-    lower = correlation_matrices.pop('romeo-and-juliet')
+    lower = correlation_matrices.pop("romeo-and-juliet")
     upper = lower - np.mean([m for m in correlation_matrices.values()], axis=0)
 
     plot_correlation_matrices(
         lower,
         upper,
-        'Romeo \\& Juliet',
-        'Difference to corpus average',
-        os.path.join(
-            f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"
-        )
+        "Romeo \\& Juliet",
+        "Difference to corpus average",
+        os.path.join(f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"),
     )

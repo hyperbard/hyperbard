@@ -262,7 +262,7 @@ def get_character_ranking_df(df):
         }
     )
     rank_df = pd.DataFrame.from_records(ranks).reset_index()
-    return rank_df.sort_values(by=rank_df.columns[-1])
+    return rank_df.sort_values(by="index")
 
 
 def get_character_ranking(representations):
@@ -283,7 +283,7 @@ def get_character_ranking(representations):
                 degree_type=degree,
                 # Will be ignored for graphs
                 s=s,
-                superlevel=superlevel
+                superlevel=superlevel,
             )
         )
 
@@ -297,4 +297,4 @@ def get_character_ranking(representations):
         .reset_index()
     )
 
-    return rank_df.sort_values(by=rank_df.columns[-1])
+    return rank_df.sort_values(by="index")
