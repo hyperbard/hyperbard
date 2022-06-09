@@ -43,7 +43,10 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/troilus-and-cressida_TEIsimple_FolgerShakespeare.xml \
 					rawdata/twelfth-night_TEIsimple_FolgerShakespeare.xml
 
-all: preprocess representations
+all: preprocess representations plot_toy
+
+plot_toy: representations
+	@python3 src/hyperbard/plot_toy.py
 
 representations: preprocess
 	@python3 src/hyperbard/create_graph_representations.py

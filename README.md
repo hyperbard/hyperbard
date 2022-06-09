@@ -184,3 +184,27 @@ romeo-and-juliet_se-speech-mwd.edges.csv
 romeo-and-juliet_se-speech.nodes.csv
 romeo-and-juliet_se-speech-wd.edges.csv
 ```
+
+### Plotting the toy example from the paper
+
+To plot the toy example of a network as depicted in Fig. 5 of the paper,
+use the `plot_toy.py` script:
+
+```bash
+$ poetry run python src/hyperbard/plot_toy.py
+```
+
+#### Output
+
+This will create three figures in the `paper_graphics` folder in the
+root directory of the repository: 
+
+```
+toy_drama_ce.pdf
+toy_drama_hg.pdf
+toy_drama_se.pdf
+```
+
+The figures illustrate the clique expansion (`_ce`), the star expansion
+(`_se`), and the hypergraph representation (`_hg`) of the scene,
+respectively.
