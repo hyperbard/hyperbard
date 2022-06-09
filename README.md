@@ -21,23 +21,14 @@ environments, as created via the `venv` package. To run the pipeline and
 create all figures run the following command:
 
 ```bash
-$ make
+$ ./setup.sh poetry
 ```
 
-Alternative, if you wish to use `venv` instead of `poetry`, run the
+Alternatively, if you wish to use `venv` instead of `poetry`, run the
 following command:
 
 ```bash
-$ make SETUP=venv
-```
-
-## Installation and overview
-
-We recommend using the [`poetry`](https://python-poetry.org) package and
-dependency manager to install this work:
-
-```bash
-$ poetry install
+$ ./setup venv
 ```
 
 Here is an overview of the directory structure after running the
@@ -55,28 +46,51 @@ subsequent pre-processing steps:
 └── tests               # Unit tests
 ```
 
+## Manual installation and overview
+
+We recommend using the [`poetry`](https://python-poetry.org) package and
+dependency manager to install this work:
+
+```bash
+$ poetry install
+```
+
+The following commands will thus be prefixed with `poetry run`. If you
+want to use another package manager or another type of virtual
+environment, just drop the prefix altogether and interact with the local
+Python executable of your environment, i.e. the environment you get
+after running `. .venv/bin/activate`, for instance.
+
 ## Extracting the raw data
 
-Create a folder `rawdata` in the root directory of this repository and
-extract the `rawdata.zip` into it:
+Normally, this step is performed by the pipeline script. In case you
+want to run this step manually, create a folder `rawdata` in the root
+directory of this repository and extract the `rawdata.zip` into it:
 
 ```bash
 $ unzip rawdata.zip -d rawdata/
 ```
 
-## Usage
+## Pre-processing
 
 Prior to analysing the (hyper)graphs, we first need to pre-process the
 data. This requires running the `run_preprocessing.py` script:
 
 ```bash
-$ cd src/hyperbard
-$ poetry run python run_preprocessing.py
+$ poetry run python src/hyperbard/run_preprocessing.py
 ```
 
 This will create CSV files and store them in the `data` folder of the
-repository. This script is idempotent; it will refresh all files upon
-a new run.
+repository. This script will not overwrite files after running it
+a second time. You can either delete the `data` folder or call the
+pre-processing script with an additional parameter `-f` or `--force`:
+
+```bash
+$ poetry run python src/hyperbard/run_preprocessing.py --force
+```
+
+The rationale behind this decision is that pre-processing takes
+a moderate amount of time and usually only has to be done once.
 
 ## Creating summary statistics of the raw data
 
@@ -85,6 +99,5 @@ statistics of our data set *prior* to converting plays into different
 representations:
 
 ```bash
-$ cd src/hyperbard
-$ python summary_statistics_raw.py
+$ poetry run python src/hyperbard/raw_summary_statistics.py
 ```
