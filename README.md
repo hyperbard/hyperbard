@@ -208,3 +208,27 @@ toy_drama_se.pdf
 The figures illustrate the clique expansion (`_ce`), the star expansion
 (`_se`), and the hypergraph representation (`_hg`) of the scene,
 respectively.
+
+### Plotting rankings for different graph representations
+
+One of the major points of our paper is that representations differ in
+expressive power and in information flow. To illustrate this, we show
+how the ranking of named characters in the plays changes as a function
+of the selected representation. This is shown in Fig. 7 and Fig. 8,
+which can be reproduced by the following script:
+
+```
+$ poetry run python src/hyperbard/plot_graph_rankings.py
+```
+
+#### Output
+
+This script will create parallel coordinate plots (similar in style to
+Fig. 8)  for each of the plays, which are stored in the `paper_graphics`
+folder. Fig. 8 itself, for example, will be stored as
+`romeo-and-juliet_ranking_parallel_coordinates.pdf`, while Fig. 7 will
+be stored as `degree_ranking_correlations.pdf`.
+
+Note that these visualisations *only* incorporate named characters; the
+rankings may potentially change if *all* characters, even those without
+a speaking role, will be used.
