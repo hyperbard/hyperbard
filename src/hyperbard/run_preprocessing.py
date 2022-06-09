@@ -1,4 +1,5 @@
 import argparse
+import functools
 import os
 from glob import glob
 from multiprocessing import Pool, cpu_count
@@ -9,7 +10,7 @@ from hyperbard.preprocessing import get_agg_xml_df, get_cast_df, get_raw_xml_df
 from hyperbard.utils import get_filename_base
 
 
-def handle_file(file):
+def handle_file(file, args):
     try:
         print(f"Starting {file}...")
         filename_base = get_filename_base(file, full=False)
@@ -62,4 +63,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with Pool(cpu_count() - 3) as p:
-        p.map(handle_file, files)
+        file_handler = functools.partial(
+            handle_file,
+            args=args
+        )
+        p.map(file_handler, files)
