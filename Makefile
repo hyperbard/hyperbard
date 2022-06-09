@@ -59,11 +59,11 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 all: setup preprocess representations
 
 representations: preprocess
-	@$(PREFIX) python src/hyperbard/create_graph_representations.py
-	@$(PREFIX) python src/hyperbard/create_hypergraph_representations.py
+	@$(PREFIX) python3 src/hyperbard/create_graph_representations.py
+	@$(PREFIX) python3 src/hyperbard/create_hypergraph_representations.py
 
 preprocess: $(RAWDATA)
-	@$(PREFIX) python src/hyperbard/run_preprocessing.py
+	@$(PREFIX) python3 src/hyperbard/run_preprocessing.py
 
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
@@ -74,7 +74,7 @@ $(RAWDATA):
 setup:
 ifeq ($(SETUP),venv)
 	@echo "Using 'venv' to create virtual environment"
-	python -m venv .venv
+	python3 -m venv .venv
 	. .venv/bin/activate
 	$(eval PREFIX=)
 else
