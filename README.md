@@ -267,3 +267,33 @@ Abram,14.0,15.0,15.0,12.0,13.0,18.0,17,16,14,20,20,20
 Apothecary,22.0,22.0,22.0,22.0,22.0,22.0,17,22,23,22,22,19
 Balthasar,17.0,15.0,14.0,16.0,10.0,11.0,14,15,10,10,9,15
 ```
+
+### Plotting rankings for different hypergraph representations
+
+Expanding on the previous point, hypergraphs offer even more
+opportunities for modelling! The usual graph properties typically
+translate into equivalent concepts in the hypergraph domain, but the
+increased expressivity also entails additional complexity. To showcase
+this, we plot the ranking of characters as a function of various notions
+of degree. Notice that hypergraphs permit a more granular analysis here;
+essentially, every node can be characterised by the number of edges of
+a specific cardinality $s$ it participates in. Treating $s$ as
+a lower-level or an upper-level threshold, respectively, we obtain
+a different set of rankings, all of which are depicted in Fig. 9.
+
+Re-creating this figure requires running `plot_hypergraph_rankings.py`:
+
+```
+$ poetry run python src/hyperbard/plot_hypergraph_rankings.py
+```
+
+#### Output
+
+This script will create parallel coordinate plots (similar in style to
+Fig. 8, but depicting the ranking changes as a function of various
+notions of hypergraph degrees) for each of the plays, which are stored
+in the `graphics` folder. Fig. 9 itself, for example, will be stored as
+`romeo-and-juliet_hg_ranking_parallel_coordinates.pdf`.
+
+(Similar to the previous visualisations, all of these plots only
+incorporate *named characters*.)
