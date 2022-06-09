@@ -63,8 +63,5 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     with Pool(cpu_count() - 3) as p:
-        file_handler = functools.partial(
-            handle_file,
-            args=args
-        )
+        file_handler = functools.partial(handle_file, args=args)
         p.map(file_handler, files)
