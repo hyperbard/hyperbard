@@ -13,6 +13,7 @@ SETUP=${1:-poetry}
 if [ "${SETUP}" = poetry ]; then
   echo "Running poetry installation"
   poetry install
+  poetry shell
 fi
 
 if [[ "${SETUP}" = venv ]]; then
