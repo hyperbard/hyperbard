@@ -1,22 +1,9 @@
 .ONESHELL:
 
-# Specifies setup type to use for creating hyperbard's environment. By
-# default, we prefer an existing `poetry` installation. You can change
-# this by calling `make` accordingly:
-#
-# 		make SETUP=venv
-#
-# Other options are not supported at the moment.
-SETUP := "poetry"
-
 # Sets the data set source to use for processing the raw data. If set to
 # "local", uses `rawdata.zip` that is supplied with the repository. When
 # set to "global", queries the latest online version.
 SOURCE := "local"
-
-# Default prefix for running commands. Can be updated if a virtual
-# environment is used.
-$(eval PREFIX=poetry run )
 
 RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/a-midsummer-nights-dream_TEIsimple_FolgerShakespeare.xml \
@@ -56,32 +43,15 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 					rawdata/troilus-and-cressida_TEIsimple_FolgerShakespeare.xml \
 					rawdata/twelfth-night_TEIsimple_FolgerShakespeare.xml
 
-all: setup preprocess representations
+all: preprocess representations
 
 representations: preprocess
-	@$(PREFIX) python3 src/hyperbard/create_graph_representations.py
-	@$(PREFIX) python3 src/hyperbard/create_hypergraph_representations.py
+	@python3 src/hyperbard/create_graph_representations.py
+	@python3 src/hyperbard/create_hypergraph_representations.py
 
 preprocess: $(RAWDATA)
-	@$(PREFIX) python3 src/hyperbard/run_preprocessing.py
+	@python3 src/hyperbard/run_preprocessing.py
 
 $(RAWDATA):
 	@echo "Checking whether raw data needs to be extracted..."
 	make -C rawdata SOURCE=$(SOURCE)
-
-# Sets up a virtual environment or a `poetry` environment, depending on
-# the configuration of the user.
-setup:
-ifeq ($(SETUP),venv)
-	@echo "Using 'venv' to create virtual environment"
-	python3 -m venv .venv
-	. .venv/bin/activate
-	$(eval PREFIX=)
-	python3 -m pip install --upgrade pip
-	pip install -r requirements.txt
-	pip install -e .
-else
-	@echo "Using 'poetry' to create virtual environment"
-	poetry install
-	$(eval PREFIX=poetry run )
-endif
