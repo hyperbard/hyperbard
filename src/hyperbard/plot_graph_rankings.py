@@ -9,7 +9,7 @@ import pandas as pd
 import seaborn as sns
 from cycler import cycler
 from matplotlib import cm
-from statics import DATA_PATH, GRAPHICS_PATH, META_PATH
+from statics import DATA_PATH, GRAPHICS_PATH, RANKINGDATA_PATH
 
 from hyperbard.graph_io import load_graph
 from hyperbard.ranking import get_character_ranking
@@ -197,6 +197,8 @@ def calculate_correlation_matrices(rankings):
 
 if __name__ == "__main__":
     os.makedirs(GRAPHICS_PATH, exist_ok=True)
+    os.makedirs(RANKINGDATA_PATH, exist_ok=True)
+
     plays = [
         get_filename_base(fn).replace(".agg", "")
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
@@ -209,20 +211,8 @@ if __name__ == "__main__":
         df_ranking = handle_play(play)
 
         df_ranking.to_csv(
-            os.path.join(f"{META_PATH}", f"{play}_ranking.csv"), index=False
+            os.path.join(f"{RANKINGDATA_PATH}", f"{play}_ranking.csv"),
+            index=False
         )
 
         rankings[play] = df_ranking
-
-    correlation_matrices = calculate_correlation_matrices(rankings)
-
-    lower = correlation_matrices.pop("romeo-and-juliet")
-    upper = lower - np.mean([m for m in correlation_matrices.values()], axis=0)
-
-    plot_correlation_matrices(
-        lower,
-        upper,
-        "Romeo \\& Juliet",
-        "Difference to corpus average",
-        os.path.join(f"{GRAPHICS_PATH}", "degree_ranking_correlations.pdf"),
-    )

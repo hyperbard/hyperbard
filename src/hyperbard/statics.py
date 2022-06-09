@@ -16,4 +16,3 @@ RESOURCE_USAGE_PATH = os.path.realpath(
 RANKINGDATA_PATH = os.path.realpath(
     os.path.join(this_dir, "..", "..", "rankingdata")
 )
-
