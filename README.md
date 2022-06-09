@@ -214,8 +214,8 @@ respectively.
 One of the major points of our paper is that representations differ in
 expressive power and in information flow. To illustrate this, we show
 how the ranking of named characters in the plays changes as a function
-of the selected representation. This is shown in Fig. 7 and Fig. 8,
-which can be reproduced by the following script:
+of the selected representation. This is shown in Fig. 8, which can be
+reproduced by the following script:
 
 ```
 $ poetry run python src/hyperbard/plot_graph_rankings.py
@@ -224,11 +224,23 @@ $ poetry run python src/hyperbard/plot_graph_rankings.py
 #### Output
 
 This script will create parallel coordinate plots (similar in style to
-Fig. 8)  for each of the plays, which are stored in the `paper_graphics`
+Fig. 8)  for each of the plays, which are stored in the `graphics`
 folder. Fig. 8 itself, for example, will be stored as
-`romeo-and-juliet_ranking_parallel_coordinates.pdf`, while Fig. 7 will
-be stored as `degree_ranking_correlations.pdf`.
+`romeo-and-juliet_ranking_parallel_coordinates.pdf`.
 
 Note that these visualisations *only* incorporate named characters; the
 rankings may potentially change if *all* characters, even those without
 a speaking role, will be used.
+
+In addition to the graphics, the folder `rankingdata` in the root
+directory of the repository will contain CSV files that contain the
+ranks of named characters (rows) according to different representations
+(columns). Here's an example ranking file for "Romeo and Juliet":
+
+```
+$ cat rankingdata/romeo-and-juliet_ranking.csv
+index,ce-scene-b,ce-scene-mb,ce-scene-mw,ce-group-b,ce-group-mb,ce-group-mw,se-scene-b,se-scene-w,se-group-b,se-group-w,se-speech-wd_in,se-speech-wd_out
+Abram,14.0,15.0,15.0,12.0,13.0,18.0,17,16,14,20,20,20
+Apothecary,22.0,22.0,22.0,22.0,22.0,22.0,17,22,23,22,22,19
+Balthasar,17.0,15.0,14.0,16.0,10.0,11.0,14,15,10,10,9,15
+```
