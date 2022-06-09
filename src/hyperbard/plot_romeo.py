@@ -206,7 +206,7 @@ if __name__ == "__main__":
         edge_vmax=max(edge_widths_scene),
         edge_color=edge_widths_scene,
     )
-    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size)
+    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size + 6)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mw-3.pdf",
         axis_off=True,
@@ -248,7 +248,7 @@ if __name__ == "__main__":
         edge_vmax=max(edge_widths_G4),
         edge_color=edge_widths_G4,
     )
-    position_partial_radial_labels(G4_subgraph_for_drawing, labels, pos, font_size)
+    position_partial_radial_labels(G4_subgraph_for_drawing, labels, pos, font_size + 6)
 
     plt.axis("off")
     plt.tight_layout()
@@ -283,7 +283,7 @@ if __name__ == "__main__":
         edge_color=sorted(edge_widths_difference),
     )
 
-    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size)
+    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size + 6)
 
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-3-differences.pdf",
