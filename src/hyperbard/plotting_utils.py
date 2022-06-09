@@ -10,7 +10,11 @@ def set_rcParams(fontsize=None):
         plt.rcParams["font.size"] = fontsize
 
 
-def save_pgf_fig(path):
+def save_pgf_fig(path, axis_off=False, tight=False):
+    if axis_off:
+        plt.axis("off")
+    if tight:
+        plt.tight_layout()
     plt.savefig(
         path,
         backend="pgf",

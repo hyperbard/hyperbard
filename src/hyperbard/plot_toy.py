@@ -20,9 +20,7 @@ def draw_toy(G, pos, ax, path):
             label = n
         txt = ax.annotate(label, position, ha="center", va="center")
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
-    plt.axis("off")
-    plt.tight_layout()
-    save_pgf_fig(path)
+    save_pgf_fig(path, axis_off=True, tight=True)
 
 
 if __name__ == "__main__":
@@ -59,8 +57,7 @@ if __name__ == "__main__":
             child.set_path_effects(
                 [PathEffects.withStroke(linewidth=5, foreground="w")]
             )
-    plt.tight_layout()
-    save_pgf_fig(f"{PAPERGRAPHICS_PATH}/toy_drama_hg.pdf")
+    save_pgf_fig(f"{PAPERGRAPHICS_PATH}/toy_drama_hg.pdf", axis_off=False, tight=True)
 
     # Star expansion
     bG = H.bipartite()
