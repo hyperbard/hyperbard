@@ -116,24 +116,30 @@ if __name__ == "__main__":
     )
 
     G3 = load_graph("romeo-and-juliet", "ce-scene-mw", edge_weights="n_lines")
-    G3 = weighted_multi_to_weighted_simple(G3, "n_lines")
+    G3_for_drawing = weighted_multi_to_weighted_simple(G3, "n_lines")
 
     sorted_edges = [
-        (u, v) for u, v, w in sorted(G3.edges(data="n_lines"), key=lambda tup: tup[-1])
+        (u, v)
+        for u, v, w in sorted(
+            G3_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
     ]
     sorted_weights = [
-        w for u, v, w in sorted(G3.edges(data="n_lines"), key=lambda tup: tup[-1])
+        w
+        for u, v, w in sorted(
+            G3_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
     ]
     edge_widths_scene = [w / 150 for w in sorted_weights]
     vmin = min(edge_widths_scene)
     vmax = max(edge_widths_scene)
 
     fig, ax = plt.subplots(1, 1, figsize=(height + 1, height))
-    labels = get_formatted_labels(G3, selected_labels)
-    pos = nx.circular_layout(G3)
+    labels = get_formatted_labels(G3_for_drawing, selected_labels)
+    pos = nx.circular_layout(G3_for_drawing)
 
     nx.draw_networkx_edges(
-        G3,
+        G3_for_drawing,
         pos=pos,
         ax=ax,
         edgelist=sorted_edges,
@@ -143,7 +149,7 @@ if __name__ == "__main__":
         edge_vmax=vmax,
         edge_color=edge_widths_scene,
     )
-    position_full_radial_labels(G3, labels, pos)
+    position_full_radial_labels(G3_for_drawing, labels, pos)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mw.pdf",
         axis_off=True,
@@ -151,3 +157,62 @@ if __name__ == "__main__":
     )
 
     # Radials for Act III only, with all named characters occurring in that act
+    act_three_edges = [
+        (u, v, k) for u, v, k, d in G3.edges(keys=True, data=True) if d["act"] == 3
+    ]
+    G3_subgraph = G3.edge_subgraph(act_three_edges)
+    G3_subgraph_for_drawing = weighted_multi_to_weighted_simple(G3_subgraph, "n_lines")
+    sorted_edges = [
+        (u, v)
+        for u, v, w in sorted(
+            G3_subgraph_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
+    ]
+    sorted_weights = [
+        w
+        for u, v, w in sorted(
+            G3_subgraph_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
+    ]
+    edge_widths_scene = [w / 50 for w in sorted_weights]
+
+    fig, ax = plt.subplots(1, 1, figsize=(height + 1, height))
+    labels = {
+        n: n.split(".")[-1]
+        if n not in selected_labels
+        else r"\textbf{" + n.split(".")[-1] + "}"
+        for n in G3_subgraph_for_drawing.nodes()
+    }
+    pos = nx.circular_layout(G3_subgraph_for_drawing)
+
+    nx.draw_networkx_edges(
+        G3_subgraph_for_drawing,
+        pos=pos,
+        ax=ax,
+        edgelist=sorted_edges,
+        width=edge_widths_scene,
+        edge_cmap=cm.Reds,
+        edge_vmin=min(edge_widths_scene),
+        edge_vmax=max(edge_widths_scene),
+        edge_color=edge_widths_scene,
+    )
+    for n in G3_subgraph_for_drawing.nodes():
+        pos_n = pos[n]
+        label_n = labels[n]
+        if label_n in ["LadyMontague"]:
+            pos_n[0] -= 0.1
+        if label_n in ["Petrucio"]:
+            pos_n[0] -= 0.1
+        if label_n in ["PrinceEscalus"]:
+            pos_n[0] += 0.1
+        if label_n in ["\\textbf{Juliet}"]:
+            pos_n[0] += 0.1
+        ha = "center"
+        va = "center"
+        txt = ax.annotate(labels[n], pos_n, fontsize=font_size + 6, va=va, ha=ha)
+        txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
+    save_pgf_fig(
+        f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mw-3.pdf",
+        axis_off=True,
+        tight=True,
+    )

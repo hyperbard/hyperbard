@@ -108,8 +108,27 @@ def load_graph(play, representation, edge_weights=None):
             zip(edges.node1, edges.node2, edges[edge_weights]),
             weight=edge_weights,
         )
+    key_columns = find_key_columns(G)
+    attribute_columns = [c for c in edges.columns if c not in key_columns]
+    edges_indexed = edges.set_index(key_columns)
+    for attribute in attribute_columns:
+        values = dict(edges_indexed[attribute])
+        nx.set_edge_attributes(G, values, name=attribute)
 
     return G
+
+
+def find_key_columns(G):
+    if isinstance(G, nx.MultiDiGraph):
+        return ["source", "target", "key"]
+    elif isinstance(G, nx.MultiGraph):
+        return ["node1", "node2", "key"]
+    elif isinstance(G, nx.DiGraph):
+        return ["source", "target"]
+    elif isinstance(G, nx.Graph):
+        return ["node1", "node2"]
+    else:
+        raise ValueError(f"Unexpected graph type: {type(G)}")
 
 
 def load_hypergraph(play, representation, edge_weights=None):
