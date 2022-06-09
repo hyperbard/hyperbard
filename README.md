@@ -185,6 +185,29 @@ romeo-and-juliet_se-speech.nodes.csv
 romeo-and-juliet_se-speech-wd.edges.csv
 ```
 
+### Plotting different representations of "Romeo & Juliet"
+
+To obtain the different representations depicted in Fig. 2, Fig. 3, and
+Fig. 4, run the `plot_romeo.py` script:
+
+```bash
+$ python src/hyperbard/plot_romeo.py
+```
+
+#### Output
+
+This script will generate new graphics in the `paper_graphics` folder,
+depicting the individual representations:
+
+```
+romeo_and_juliet_ce-3-differences.pdf
+romeo_and_juliet_ce-group-mw-3.pdf
+romeo_and_juliet_ce-scene-b.pdf
+romeo_and_juliet_ce-scene-mb.pdf
+romeo_and_juliet_ce-scene-mw-3.pdf
+romeo_and_juliet_ce-scene-mw.pdf
+```
+
 ### Plotting the toy example from the paper
 
 To plot the toy example of a network as depicted in Fig. 5 of the paper,

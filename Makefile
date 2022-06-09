@@ -48,6 +48,9 @@ all: preprocess representations plot_toy
 plot_graph_rankings: representations
 	@python3 src/hyperbard/plot_graph_rankings.py
 
+plot_romeo: representations
+	@python3 src/hyperbard/plot_romeo.py
+
 plot_toy: representations
 	@python3 src/hyperbard/plot_toy.py
 
