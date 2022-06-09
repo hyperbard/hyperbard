@@ -1,9 +1,8 @@
-from glob import glob
-
 import matplotlib.cm as cm
 import matplotlib.patheffects as PathEffects
 import matplotlib.pyplot as plt
 import networkx as nx
+import pandas as pd
 
 from hyperbard.graph_io import load_graph
 from hyperbard.plotting_utils import save_pgf_fig, set_rcParams
@@ -28,7 +27,7 @@ def weighted_multi_to_weighted_simple(G, weight_name):
     return G_new
 
 
-def position_full_radial_labels(G, labels, pos):
+def position_full_radial_labels(G, labels, pos, fontsize):
     for n in G.nodes():
         pos_n = pos[n]
         label_n = labels[n]
@@ -40,7 +39,23 @@ def position_full_radial_labels(G, labels, pos):
             pos_n[-1] -= 0.075
         ha = "center"
         va = "center"
-        txt = ax.annotate(labels[n], pos_n, fontsize=font_size + 6, va=va, ha=ha)
+        txt = ax.annotate(labels[n], pos_n, fontsize=fontsize, va=va, ha=ha)
+        txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
+
+
+def position_partial_radial_labels(G, labels, pos, fontsize):
+    for n in G.nodes():
+        pos_n = pos[n]
+        label_n = labels[n]
+        if label_n in ["\\textbf{LadyCapulet}"]:
+            pos_n[0] -= 0.2
+        if label_n in ["Petrucio"]:
+            pos_n[0] -= 0.1
+        if label_n in ["PrinceEscalus"]:
+            pos_n[0] += 0.2
+        ha = "center"
+        va = "center"
+        txt = ax.annotate(labels[n], pos_n, fontsize=fontsize, va=va, ha=ha)
         txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
 
 
@@ -72,7 +87,7 @@ if __name__ == "__main__":
         edge_color=[0.5] * G1.number_of_edges(),
         node_size=50,
     )
-    position_full_radial_labels(G1, labels, pos)
+    position_full_radial_labels(G1, labels, pos, font_size + 6)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-b.pdf",
         axis_off=True,
@@ -108,7 +123,7 @@ if __name__ == "__main__":
         width=sorted_counts,
         node_size=50,
     )
-    position_full_radial_labels(G2, labels, pos)
+    position_full_radial_labels(G2, labels, pos, font_size + 6)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mb.pdf",
         axis_off=True,
@@ -149,7 +164,7 @@ if __name__ == "__main__":
         edge_vmax=vmax,
         edge_color=edge_widths_scene,
     )
-    position_full_radial_labels(G3_for_drawing, labels, pos)
+    position_full_radial_labels(G3_for_drawing, labels, pos, font_size + 6)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mw.pdf",
         axis_off=True,
@@ -177,12 +192,7 @@ if __name__ == "__main__":
     edge_widths_scene = [w / 50 for w in sorted_weights]
 
     fig, ax = plt.subplots(1, 1, figsize=(height + 1, height))
-    labels = {
-        n: n.split(".")[-1]
-        if n not in selected_labels
-        else r"\textbf{" + n.split(".")[-1] + "}"
-        for n in G3_subgraph_for_drawing.nodes()
-    }
+    labels = get_formatted_labels(G3_subgraph_for_drawing, selected_labels)
     pos = nx.circular_layout(G3_subgraph_for_drawing)
 
     nx.draw_networkx_edges(
@@ -196,23 +206,89 @@ if __name__ == "__main__":
         edge_vmax=max(edge_widths_scene),
         edge_color=edge_widths_scene,
     )
-    for n in G3_subgraph_for_drawing.nodes():
-        pos_n = pos[n]
-        label_n = labels[n]
-        if label_n in ["LadyMontague"]:
-            pos_n[0] -= 0.1
-        if label_n in ["Petrucio"]:
-            pos_n[0] -= 0.1
-        if label_n in ["PrinceEscalus"]:
-            pos_n[0] += 0.1
-        if label_n in ["\\textbf{Juliet}"]:
-            pos_n[0] += 0.1
-        ha = "center"
-        va = "center"
-        txt = ax.annotate(labels[n], pos_n, fontsize=font_size + 6, va=va, ha=ha)
-        txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
+    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size)
     save_pgf_fig(
         f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-scene-mw-3.pdf",
         axis_off=True,
         tight=True,
     )
+
+    G4 = load_graph("romeo-and-juliet", "ce-group-mw", edge_weights="n_lines")
+    act_three_edges_group = [
+        (u, v, k) for u, v, k, d in G4.edges(keys=True, data=True) if d["act"] == 3
+    ]
+    G4_subgraph = G4.edge_subgraph(act_three_edges_group)
+    G4_subgraph_for_drawing = weighted_multi_to_weighted_simple(G4_subgraph, "n_lines")
+    sorted_edges_G4 = [
+        (u, v)
+        for u, v, w in sorted(
+            G4_subgraph_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
+    ]
+    sorted_weights_G4 = [
+        w
+        for u, v, w in sorted(
+            G4_subgraph_for_drawing.edges(data="n_lines"), key=lambda tup: tup[-1]
+        )
+    ]
+    edge_widths_G4 = [w / 50 for w in sorted_weights_G4]
+
+    fig, ax = plt.subplots(1, 1, figsize=(height + 1, height))
+    labels = get_formatted_labels(G4_subgraph_for_drawing, selected_labels)
+    pos = nx.circular_layout(G4_subgraph_for_drawing)
+
+    nx.draw_networkx_edges(
+        G4_subgraph_for_drawing,
+        pos=pos,
+        ax=ax,
+        edgelist=sorted_edges_G4,
+        width=edge_widths_G4,
+        edge_cmap=cm.Reds,
+        edge_vmin=min(edge_widths_G4),
+        edge_vmax=max(edge_widths_G4),
+        edge_color=edge_widths_G4,
+    )
+    position_partial_radial_labels(G4_subgraph_for_drawing, labels, pos, font_size)
+
+    plt.axis("off")
+    plt.tight_layout()
+    save_pgf_fig(f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-group-mw-3.pdf")
+
+    df_diff = pd.DataFrame(
+        sorted(G3_subgraph_for_drawing.edges(data="n_lines")),
+        columns=["node1", "node2", "n_lines_scene"],
+    ).set_index(["node1", "node2"])
+    df_diff["n_lines_group"] = 0
+    for n1, n2, w in G4_subgraph_for_drawing.edges(data="n_lines"):
+        df_diff.at[(n1, n2), "n_lines_group"] = w
+    df_diff["n_lines_difference"] = df_diff.n_lines_scene - df_diff.n_lines_group
+    df_diff = df_diff.query("n_lines_difference != 0")
+    edge_widths_difference = [
+        df_diff.at[(u, v), "n_lines_difference"] / 50
+        for u, v in G3_subgraph_for_drawing.edges()
+        if (u, v) in df_diff.index
+    ]
+
+    fig, ax = plt.subplots(1, 1, figsize=(height + 1, height))
+    pos = nx.circular_layout(G3_subgraph_for_drawing)
+    nx.draw_networkx_edges(
+        G3_subgraph_for_drawing,
+        pos=pos,
+        ax=ax,
+        edgelist=df_diff.sort_values("n_lines_difference", ascending=True).index,
+        width=sorted(edge_widths_difference),
+        edge_cmap=cm.Blues,
+        edge_vmin=min(edge_widths_difference),
+        edge_vmax=max(edge_widths_difference),
+        edge_color=sorted(edge_widths_difference),
+    )
+
+    position_partial_radial_labels(G3_subgraph_for_drawing, labels, pos, font_size)
+
+    save_pgf_fig(
+        f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_ce-3-differences.pdf",
+        axis_off=True,
+        tight=True,
+    )
+
+    # Star expansions for Act III only, with all named characters occurring in that act
