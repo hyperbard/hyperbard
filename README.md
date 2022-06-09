@@ -125,3 +125,62 @@ $ poetry run python src/hyperbard/raw_summary_statistics.py
 This step does *not* entail creating the actual figure but only a CSV
 file containing the summary statistics. You can find this CSV file under
 `metadata/summary_statistics_raw.csv`.
+
+### Creating (hyper)graph representations
+
+From the pre-processed CSV files, various (hyper)graph representations
+can be created and stored in `graphdata`. To create the graphs, call the
+script `create_graph_representations.py`:
+
+```bash
+$ poetry run python src/hyperbard/create_graph_representations.py
+Found 37 files to process.
+a-midsummer-nights-dream
+alls-well-that-ends-well
+antony-and-cleopatra
+as-you-like-it
+[...]
+twelfth-night
+```
+
+The script iterates over all 37 plays and stores its various outputs in
+`graphdata`. Next, let's create hypergraphs as well:
+
+```bash
+$ poetry run python src/hyperbard/create_hypergraph_representations.py
+Found 37 files to process.
+a-midsummer-nights-dream
+alls-well-that-ends-well
+antony-and-cleopatra
+as-you-like-it
+[...]
+twelfth-night
+```
+
+#### Output
+
+The `graphdata` folder will now contain a set of files containing edges
+and nodes of the various representations. Here is an excerpt of the
+files you will get:
+
+```
+romeo-and-juliet_ce-group-mw.edges.csv
+romeo-and-juliet_ce-group-w.edges.csv
+romeo-and-juliet_ce.nodes.csv
+romeo-and-juliet_ce-scene-mw.edges.csv
+romeo-and-juliet_ce-scene-w.edges.csv
+romeo-and-juliet_hg-group-mw.edges.csv
+romeo-and-juliet_hg-group-mw.node-weights.csv
+romeo-and-juliet_hg.nodes.csv
+romeo-and-juliet_hg-scene-mw.edges.csv
+romeo-and-juliet_hg-scene-mw.node-weights.csv
+romeo-and-juliet_hg-speech-mwd.edges.csv
+romeo-and-juliet_hg-speech-wd.edges.csv
+romeo-and-juliet_se-group.nodes.csv
+romeo-and-juliet_se-group-w.edges.csv
+romeo-and-juliet_se-scene.nodes.csv
+romeo-and-juliet_se-scene-w.edges.csv
+romeo-and-juliet_se-speech-mwd.edges.csv
+romeo-and-juliet_se-speech.nodes.csv
+romeo-and-juliet_se-speech-wd.edges.csv
+```
