@@ -45,6 +45,9 @@ RAWDATA = rawdata/alls-well-that-ends-well_TEIsimple_FolgerShakespeare.xml \
 
 all: preprocess representations plot_toy
 
+plot_graph_rankings: representations
+	@python3 src/hyperbard/plot_graph_rankings.py
+
 plot_toy: representations
 	@python3 src/hyperbard/plot_toy.py
 
