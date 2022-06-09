@@ -77,6 +77,9 @@ ifeq ($(SETUP),venv)
 	python3 -m venv .venv
 	. .venv/bin/activate
 	$(eval PREFIX=)
+	python3 -m pip install --upgrade pip
+	pip install -r requirements.txt
+	pip install -e .
 else
 	@echo "Using 'poetry' to create virtual environment"
 	poetry install
