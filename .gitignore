@@ -1,5 +1,12 @@
 # Custom
-rawdata/
+rawdata.zip
+data/
+graphdata/
+graphics/
+rawdata/*.xml
+rankingdata/
+
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
