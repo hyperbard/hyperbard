@@ -61,7 +61,7 @@ environment, just drop the prefix altogether and interact with the local
 Python executable of your environment, i.e. the environment you get
 after running `. .venv/bin/activate`, for instance.
 
-## Extracting the raw data
+### Extracting the raw data
 
 Normally, this step is performed by the pipeline script. In case you
 want to run this step manually, create a folder `rawdata` in the root
@@ -71,7 +71,7 @@ directory of this repository and extract the `rawdata.zip` into it:
 $ unzip rawdata.zip -d rawdata/
 ```
 
-## Pre-processing
+### Pre-processing
 
 Prior to analysing the (hyper)graphs, we first need to pre-process the
 data. This requires running the `run_preprocessing.py` script:
@@ -92,12 +92,36 @@ $ poetry run python src/hyperbard/run_preprocessing.py --force
 The rationale behind this decision is that pre-processing takes
 a moderate amount of time and usually only has to be done once.
 
-## Creating summary statistics of the raw data
+#### Output
 
-This will enable you to reproduce Fig. 1 in the paper, which depicts the
-statistics of our data set *prior* to converting plays into different
-representations:
+This script will place pre-processed CSVs in `data`. Three
+files will be created for each play. For instance:
+
+```
+romeo-and-juliet.agg.csv
+romeo-and-juliet.cast.csv
+romeo-and-juliet.raw.csv
+```
+
+The `raw` file contains a representation of the full play, including
+individual comments on which tokens are being uttered by which
+character. The `agg` file contains an aggregated representation of the
+data, following the granularity dimensions outlined in the paper. We
+build all our (hyper)graph representations from such data. Finally, the
+`cast` file contains information about the cast present in a play.
+
+### Creating summary statistics of the raw data
+
+This will enable you to reproduce the raw statistics of Fig. 1 in the
+paper, which depicts the statistics of our data set *prior* to
+converting plays into different representations:
 
 ```bash
 $ poetry run python src/hyperbard/raw_summary_statistics.py
 ```
+
+#### Output
+
+This step does *not* entail creating the actual figure but only a CSV
+file containing the summary statistics. You can find this CSV file under
+`metadata/summary_statistics_raw.csv`.
