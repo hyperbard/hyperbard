@@ -112,19 +112,20 @@ def load_graph(play, representation, edge_weights=None):
     attribute_columns = [c for c in edges.columns if c not in key_columns]
     edges_indexed = edges.set_index(key_columns)
     for attribute in attribute_columns:
-        values = dict(edges_indexed[attribute])
-        nx.set_edge_attributes(G, values, name=attribute)
+        if attribute != edge_weights:
+            values = dict(edges_indexed[attribute])
+            nx.set_edge_attributes(G, values, name=attribute)
 
     return G
 
 
 def find_key_columns(G):
     if isinstance(G, nx.MultiDiGraph):
-        return ["source", "target", "key"]
+        return ["node1", "node2", "key"]
     elif isinstance(G, nx.MultiGraph):
         return ["node1", "node2", "key"]
     elif isinstance(G, nx.DiGraph):
-        return ["source", "target"]
+        return ["node1", "node2"]
     elif isinstance(G, nx.Graph):
         return ["node1", "node2"]
     else:
