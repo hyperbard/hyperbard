@@ -24,3 +24,5 @@ if [[ "${SETUP}" = venv ]]; then
 	pip install -r requirements.txt
 	pip install -e .
 fi
+
+make
