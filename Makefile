@@ -64,6 +64,9 @@ representations: preprocess
 	@python3 src/hyperbard/create_graph_representations.py
 	@python3 src/hyperbard/create_hypergraph_representations.py
 
+raw_summary_statistics: preprocess
+	@python3 src/hyperbard/raw_summary_statistics.py
+
 preprocess: $(RAWDATA)
 	@python3 src/hyperbard/run_preprocessing.py
 

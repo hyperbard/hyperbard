@@ -46,7 +46,7 @@ subsequent pre-processing steps:
 └── tests               # Unit tests
 ```
 
-## Manual installation and overview
+## Running the pipeline
 
 We recommend using the [`poetry`](https://python-poetry.org) package and
 dependency manager to install this work:
@@ -61,6 +61,28 @@ environment, just drop the prefix altogether and interact with the local
 Python executable of your environment, i.e. the environment you get
 after running `. .venv/bin/activate`, for instance.
 
+**Using `make`**: If your virtual environment is activated and set up
+correctly, you can always just use `make` to run *all* steps of the
+pipeline:
+
+```bash
+$ make      # Run the pipeline
+$ make all  # Also runs the pipeline but is a little bit more verbose
+```
+
+If you want to run an individual step only, use the `target` indicated
+in each of the subsequent steps. For instance, to run only the
+pre-processing step, you can run the following command:
+
+```bash
+$ make preprocess
+```
+
+We have set up our pipeline such that individual targets know their
+prerequisites; it is therefore possible to run only a single step---for
+instance the creation of plots---and `make` will ensure that all
+required data is available.
+
 ### Extracting the raw data
 
 Normally, this step is performed by the pipeline script. In case you
@@ -71,7 +93,7 @@ directory of this repository and extract the `rawdata.zip` into it:
 $ unzip rawdata.zip -d rawdata/
 ```
 
-### Pre-processing
+### Pre-processing (`make preprocess`)
 
 Prior to analysing the (hyper)graphs, we first need to pre-process the
 data. This requires running the `run_preprocessing.py` script:
@@ -110,7 +132,7 @@ data, following the granularity dimensions outlined in the paper. We
 build all our (hyper)graph representations from such data. Finally, the
 `cast` file contains information about the cast present in a play.
 
-### Creating summary statistics of the raw data
+### Creating summary statistics of the raw data (`make raw_summary_statistics`)
 
 This will enable you to reproduce the raw statistics of Fig. 1 in the
 paper, which depicts the statistics of our data set *prior* to
@@ -126,7 +148,7 @@ This step does *not* entail creating the actual figure but only a CSV
 file containing the summary statistics. You can find this CSV file under
 `metadata/summary_statistics_raw.csv`.
 
-### Creating (hyper)graph representations
+### Creating (hyper)graph representations (`make representations`)
 
 From the pre-processed CSV files, various (hyper)graph representations
 can be created and stored in `graphdata`. To create the graphs, call the
@@ -185,7 +207,7 @@ romeo-and-juliet_se-speech.nodes.csv
 romeo-and-juliet_se-speech-wd.edges.csv
 ```
 
-### Plotting different representations of "Romeo & Juliet"
+### Plotting different representations of "Romeo & Juliet" (`make plot_romeo`) 
 
 To obtain the different representations depicted in Fig. 2, Fig. 3, and
 Fig. 4, run the `plot_romeo.py` script:
@@ -208,7 +230,7 @@ romeo_and_juliet_ce-scene-mw-3.pdf
 romeo_and_juliet_ce-scene-mw.pdf
 ```
 
-### Plotting the toy example from the paper
+### Plotting the toy example from the paper (`make plot_toy`)
 
 To plot the toy example of a network as depicted in Fig. 5 of the paper,
 use the `plot_toy.py` script:
@@ -232,7 +254,7 @@ The figures illustrate the clique expansion (`_ce`), the star expansion
 (`_se`), and the hypergraph representation (`_hg`) of the scene,
 respectively.
 
-### Plotting rankings for different graph representations
+### Plotting rankings for different graph representations (`make plot_graph_rankings`)
 
 One of the major points of our paper is that representations differ in
 expressive power and in information flow. To illustrate this, we show
@@ -268,7 +290,7 @@ Apothecary,22.0,22.0,22.0,22.0,22.0,22.0,17,22,23,22,22,19
 Balthasar,17.0,15.0,14.0,16.0,10.0,11.0,14,15,10,10,9,15
 ```
 
-### Plotting rankings for different hypergraph representations
+### Plotting rankings for different hypergraph representations (`make plot_hypergraph_rankings`)
 
 Expanding on the previous point, hypergraphs offer even more
 opportunities for modelling! The usual graph properties typically
