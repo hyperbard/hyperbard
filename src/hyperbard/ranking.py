@@ -261,8 +261,8 @@ def get_character_ranking_df(df):
             # ),
         }
     )
-    rank_df = pd.DataFrame.from_records(ranks).reset_index()
-    return rank_df.sort_values(by="index")
+    rank_df = pd.DataFrame.from_records(ranks)  # .reset_index()
+    return rank_df.sort_index()  # .sort_values(by="index")
 
 
 def get_character_ranking(representations):
@@ -288,13 +288,12 @@ def get_character_ranking(representations):
         )
 
     rank_df = (
-        pd.DataFrame.from_records(ranks)
-        .rename(
+        pd.DataFrame.from_records(ranks).rename(
             # Rename columns by dropping the 'XX-' prefix.
             mapper=lambda x: "-".join(x.split("-")[1:]),
             axis="columns",
         )
-        .reset_index()
+        # .reset_index()
     )
 
-    return rank_df.sort_values(by="index")
+    return rank_df.sort_index()  # rank_df.sort_values(by="index")

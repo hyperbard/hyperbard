@@ -8,8 +8,7 @@ from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 from hyperbard.plotting_utils import set_rcParams
 from hyperbard.statics import PAPERGRAPHICS_PATH, RANKINGDATA_PATH
-
-set_rcParams(26)
+from hyperbard.track_time import timeit
 
 
 def get_correlation_dfs(ranking_files):
@@ -87,7 +86,8 @@ def plot_correlation_difference_matrix(
     )
 
 
-if __name__ == "__main__":
+@timeit
+def plot_rank_correlations():
     ranking_files = sorted(glob(f"{RANKINGDATA_PATH}/**_ranking.csv"))
     corrs = get_correlation_dfs(ranking_files)
     average_correlation = get_average_correlation(corrs)
@@ -98,3 +98,8 @@ if __name__ == "__main__":
     plot_correlation_difference_matrix(
         randj_correlation, diff_correlation, "romeo-and-juliet"
     )
+
+
+if __name__ == "__main__":
+    set_rcParams(26)
+    plot_rank_correlations()

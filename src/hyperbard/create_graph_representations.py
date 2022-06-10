@@ -159,5 +159,3 @@ if __name__ == "__main__":
 
     for file in files:
         handle_file(file)
-    # with Pool(cpu_count() - 3) as p:
-    #     p.map(handle_file, files)

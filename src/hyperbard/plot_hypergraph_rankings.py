@@ -43,11 +43,9 @@ def handle_play(play):
     ]
 
     representations = sublevel + superlevel
-    df_ranking = get_character_ranking(representations).rename(
-        dict(index="node"), axis=1
-    )
-    df_ranking.node = df_ranking.node.map(remove_uppercase_prefixes)
-    df_ranking = df_ranking.sort_values("node").rename(dict(node="index"), axis=1)
+    df_ranking = get_character_ranking(representations)
+    df_ranking.index = df_ranking.index.map(remove_uppercase_prefixes)
+    df_ranking = df_ranking.sort_index()
 
     plot_character_rankings(
         df_ranking,

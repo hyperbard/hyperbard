@@ -14,9 +14,8 @@ from statics import DATA_PATH, GRAPHICS_PATH, RANKINGDATA_PATH
 from hyperbard.graph_io import load_graph
 from hyperbard.plotting_utils import set_rcParams
 from hyperbard.ranking import get_character_ranking
+from hyperbard.track_time import timeit
 from hyperbard.utils import get_filename_base, remove_uppercase_prefixes
-
-set_rcParams(29)
 
 
 def plot_character_rankings(character_ranking_df, save_path=None):
@@ -34,7 +33,7 @@ def plot_character_rankings(character_ranking_df, save_path=None):
     cmap = lambda i: cm.tab20c(i) if i % 2 == 0 else cm.tab20b(i)
     ax.set_prop_cycle(custom_cycler)
     pd.plotting.parallel_coordinates(
-        character_ranking_df,
+        character_ranking_df.reset_index(),
         class_column="index",
         colormap=cmap,
         ax=ax,
@@ -92,9 +91,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
         plt.show()
 
 
-def compute_ranking_df(play):
-    print(play)
-
+def get_selected_representations(play):
     ce_scene_b = load_graph(play, "ce-scene-w", "count")
     ce_scene_m = load_graph(play, "ce-scene-mw", "n_lines")
 
@@ -166,20 +163,21 @@ def compute_ranking_df(play):
             "degree": "out",
         },
     ]
+    return representations
 
-    df_ranking = get_character_ranking(representations).rename(
-        dict(index="node"), axis=1
-    )
-    df_ranking.node = df_ranking.node.map(remove_uppercase_prefixes)
-    df_ranking = df_ranking.sort_values("node").rename(dict(node="index"), axis=1)
+
+def compute_ranking_df(play):
+    print(play)
+    representations = get_selected_representations(play)
+    df_ranking = get_character_ranking(representations)
+    df_ranking.index = df_ranking.index.map(remove_uppercase_prefixes)
+    df_ranking = df_ranking.sort_index()
 
     return df_ranking
 
 
-if __name__ == "__main__":
-    os.makedirs(GRAPHICS_PATH, exist_ok=True)
-    os.makedirs(RANKINGDATA_PATH, exist_ok=True)
-
+@timeit
+def plot_graph_rankings():
     plays = [
         get_filename_base(fn).replace(".agg", "")
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
@@ -197,3 +195,10 @@ if __name__ == "__main__":
         df_ranking.to_csv(
             os.path.join(f"{RANKINGDATA_PATH}", f"{play}_ranking.csv"), index=False
         )
+
+
+if __name__ == "__main__":
+    os.makedirs(GRAPHICS_PATH, exist_ok=True)
+    os.makedirs(RANKINGDATA_PATH, exist_ok=True)
+    set_rcParams(29)
+    plot_graph_rankings()
