@@ -15,17 +15,18 @@ from hyperbard.statics import GRAPHDATA_PATH, PAPERGRAPHICS_PATH
 
 def get_character_color(k):
     if k == "Romeo":
-        return cm.tab10(1)
-    if k == "Juliet":
-        return cm.tab10(3)
-    if k == "Nurse":
-        return cm.tab10(2)
-    if k == "Capulet":
-        return cm.tab10(0)
-    if k == "LadyCapulet":
-        return cm.tab10(4)
+        color = cm.tab10(1)
+    elif k == "Juliet":
+        color = cm.tab10(3)
+    elif k == "Nurse":
+        color = cm.tab10(2)
+    elif k == "Capulet":
+        color = cm.tab10(0)
+    elif k == "LadyCapulet":
+        color = cm.tab10(4)
     else:
-        return "k"
+        color = "k"
+    return color
 
 
 def draw_hypergraph(H, node_radius, edge_width, fontsize, tax, layout_kwargs):
