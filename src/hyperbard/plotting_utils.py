@@ -1,6 +1,8 @@
 from matplotlib import cm as cm
 from matplotlib import pyplot as plt
 
+from hyperbard.utils import remove_uppercase_prefixes
+
 
 def set_rcParams(fontsize=None):
     plt.rcParams["font.family"] = "serif"
@@ -39,3 +41,12 @@ def get_character_color(k):
     else:
         color = "k"
     return color
+
+
+def get_formatted_labels(G, selected_labels):
+    return {
+        n: remove_uppercase_prefixes(n)
+        if n not in selected_labels
+        else r"\textbf{" + remove_uppercase_prefixes(n) + "}"
+        for n in G.nodes()
+    }
