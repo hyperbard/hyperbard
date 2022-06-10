@@ -28,7 +28,7 @@ Alternatively, if you wish to use `venv` instead of `poetry`, run the
 following command:
 
 ```bash
-$ ./setup venv
+$ ./setup.sh venv
 ```
 
 Here is an overview of the directory structure after running the
