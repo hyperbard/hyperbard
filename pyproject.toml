@@ -21,6 +21,7 @@ jupyterlab = "^3.3.4"
 isort = "^5.10.1"
 pytest = "^7.1.2"
 pytest-cov = "^3.0.0"
+Sphinx = "^5.0.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
