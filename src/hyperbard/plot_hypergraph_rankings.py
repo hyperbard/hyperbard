@@ -8,13 +8,11 @@ from statics import DATA_PATH, GRAPHICS_PATH
 
 from hyperbard.graph_io import load_hypergraph
 from hyperbard.plot_graph_rankings import plot_character_rankings
+from hyperbard.plotting_utils import set_rcParams
 from hyperbard.ranking import get_character_ranking
-from hyperbard.utils import get_filename_base
+from hyperbard.utils import get_filename_base, remove_uppercase_prefixes
 
-plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.serif"] = "Palatino"
-plt.rcParams["text.usetex"] = True
-plt.rcParams["pdf.fonttype"] = 42
+set_rcParams()
 
 
 def handle_play(play):
@@ -45,7 +43,11 @@ def handle_play(play):
     ]
 
     representations = sublevel + superlevel
-    df_ranking = get_character_ranking(representations)
+    df_ranking = get_character_ranking(representations).rename(
+        dict(index="node"), axis=1
+    )
+    df_ranking.node = df_ranking.node.map(remove_uppercase_prefixes)
+    df_ranking = df_ranking.sort_values("node").rename(dict(node="index"), axis=1)
 
     plot_character_rankings(
         df_ranking,

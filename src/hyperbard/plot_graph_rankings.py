@@ -12,14 +12,11 @@ from matplotlib import cm
 from statics import DATA_PATH, GRAPHICS_PATH, RANKINGDATA_PATH
 
 from hyperbard.graph_io import load_graph
+from hyperbard.plotting_utils import set_rcParams
 from hyperbard.ranking import get_character_ranking
-from hyperbard.utils import get_filename_base, get_name_from_identifier
+from hyperbard.utils import get_filename_base, remove_uppercase_prefixes
 
-plt.rcParams["font.family"] = "serif"
-plt.rcParams["font.serif"] = "Palatino"
-plt.rcParams["text.usetex"] = True
-plt.rcParams["pdf.fonttype"] = 42
-plt.rcParams["font.size"] = 29
+set_rcParams(29)
 
 
 def plot_character_rankings(character_ranking_df, save_path=None):
@@ -48,7 +45,7 @@ def plot_character_rankings(character_ranking_df, save_path=None):
     )
     ax.invert_yaxis()
     labels = [
-        get_name_from_identifier(elem.get_text()) for elem in ax.legend().get_texts()
+        remove_uppercase_prefixes(elem.get_text()) for elem in ax.legend().get_texts()
     ]
     plt.xticks(rotation=45)
     legend = plt.legend(loc=(1.01, 0), labels=labels, ncol=2)
@@ -171,6 +168,11 @@ def handle_play(play):
     ]
 
     df_ranking = get_character_ranking(representations)
+    df_ranking = get_character_ranking(representations).rename(
+        dict(index="node"), axis=1
+    )
+    df_ranking.node = df_ranking.node.map(remove_uppercase_prefixes)
+    df_ranking = df_ranking.sort_values("node").rename(dict(node="index"), axis=1)
 
     plot_character_rankings(
         df_ranking,
@@ -211,8 +213,7 @@ if __name__ == "__main__":
         df_ranking = handle_play(play)
 
         df_ranking.to_csv(
-            os.path.join(f"{RANKINGDATA_PATH}", f"{play}_ranking.csv"),
-            index=False
+            os.path.join(f"{RANKINGDATA_PATH}", f"{play}_ranking.csv"), index=False
         )
 
         rankings[play] = df_ranking

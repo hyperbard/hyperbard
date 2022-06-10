@@ -9,24 +9,9 @@ import seaborn as sns
 from matplotlib.text import Annotation
 
 from hyperbard.graph_io import load_graph, load_hypergraph
-from hyperbard.plotting_utils import save_pgf_fig, set_rcParams
+from hyperbard.plotting_utils import get_character_color, save_pgf_fig, set_rcParams
 from hyperbard.statics import GRAPHDATA_PATH, PAPERGRAPHICS_PATH
-
-
-def get_character_color(k):
-    if k == "Romeo":
-        color = cm.tab10(1)
-    elif k == "Juliet":
-        color = cm.tab10(3)
-    elif k == "Nurse":
-        color = cm.tab10(2)
-    elif k == "Capulet":
-        color = cm.tab10(0)
-    elif k == "LadyCapulet":
-        color = cm.tab10(4)
-    else:
-        color = "k"
-    return color
+from hyperbard.utils import get_name_from_identifier
 
 
 def draw_hypergraph(H, node_radius, edge_width, fontsize, tax, layout_kwargs):
@@ -56,11 +41,6 @@ def draw_hypergraph(H, node_radius, edge_width, fontsize, tax, layout_kwargs):
             child.set_path_effects(
                 [PathEffects.withStroke(linewidth=5, foreground="w")]
             )
-
-
-# TODO fix
-def prettify_identifier(identifier):
-    return identifier.replace("#", "").split("_")[0]
 
 
 def get_formatted_labels(G, selected_labels):
@@ -513,12 +493,12 @@ if __name__ == "__main__":
 
     # TODO refactor to use graph loader
     speech_nodes = pd.read_csv(f"{GRAPHDATA_PATH}/romeo-and-juliet_se-speech.nodes.csv")
-    speech_nodes.node = speech_nodes.node.map(prettify_identifier)
+    speech_nodes.node = speech_nodes.node.map(get_name_from_identifier)
     speech_edges_wd = pd.read_csv(
         f"{GRAPHDATA_PATH}/romeo-and-juliet_se-speech-wd.edges.csv"
     )
-    speech_edges_wd.source = speech_edges_wd.source.map(prettify_identifier)
-    speech_edges_wd.target = speech_edges_wd.target.map(prettify_identifier)
+    speech_edges_wd.source = speech_edges_wd.source.map(get_name_from_identifier)
+    speech_edges_wd.target = speech_edges_wd.target.map(get_name_from_identifier)
     speech_edges_wd_3_5 = speech_edges_wd.query(
         "source.str.startswith('3.') or target.str.startswith('3.')"
     ).copy()
@@ -641,7 +621,9 @@ if __name__ == "__main__":
     node_weights_act_three = pd.read_csv(
         f"{GRAPHDATA_PATH}/romeo-and-juliet_hg-group-mw.node-weights.csv"
     ).query("act == 3")
-    node_weights_act_three.node = node_weights_act_three.node.map(prettify_identifier)
+    node_weights_act_three.node = node_weights_act_three.node.map(
+        get_name_from_identifier
+    )
 
     seed = 5
     for scene in range(1, 6):
@@ -678,14 +660,14 @@ if __name__ == "__main__":
     hg_speech_mwd.speaker = hg_speech_mwd.speaker.map(
         lambda x: [
             y
-            for y in map(prettify_identifier, x.split())
+            for y in map(get_name_from_identifier, x.split())
             if not y.isupper() and not y.startswith("SERVANT")
         ]
     )
     hg_speech_mwd.onstage = hg_speech_mwd.onstage.map(
         lambda x: [
             y
-            for y in map(prettify_identifier, x.split())
+            for y in map(get_name_from_identifier, x.split())
             if not y.isupper() and not y.startswith("SERVANT")
         ]
     )

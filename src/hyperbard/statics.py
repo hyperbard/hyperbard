@@ -13,6 +13,4 @@ PAPERGRAPHICS_PATH = os.path.realpath(
 RESOURCE_USAGE_PATH = os.path.realpath(
     os.path.join(this_dir, "..", "..", "resource_usage")
 )
-RANKINGDATA_PATH = os.path.realpath(
-    os.path.join(this_dir, "..", "..", "rankingdata")
-)
+RANKINGDATA_PATH = os.path.realpath(os.path.join(this_dir, "..", "..", "rankingdata"))

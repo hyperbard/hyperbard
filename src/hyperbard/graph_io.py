@@ -6,20 +6,24 @@ import re
 import hypernetx as hnx
 import networkx as nx
 import pandas as pd
-from statics import GRAPHDATA_PATH
+
+from hyperbard.statics import GRAPHDATA_PATH
+from hyperbard.utils import remove_uppercase_prefixes
 
 
-def prettify_identifier(identifier):
-    """Return pretty identifier (character name)."""
-    identifier = identifier.replace("#", "").split("_")[0]
-    # Remove any prefixes that precede the current one if they are
-    # written in capital letters. This removes "SERVANTS.CAPULET."
-    # in Romeo & Juliet, for instance.
-    identifier = re.sub(r"[A-Z\.]*([A-Z])", r"\1", identifier)
-    return identifier
+def rename_directed_columns(edges):
+    return edges.rename(
+        {
+            "source": "node1",
+            "target": "node2",
+        },
+        axis="columns",
+    )
 
 
-def load_graph(play, representation, edge_weights=None):
+def load_graph(
+    play, representation, edge_weights=None, restrict_to_named_characters=True
+):
     """Load graph for a specific representation of a play.
 
     Parameters
@@ -38,49 +42,48 @@ def load_graph(play, representation, edge_weights=None):
     nx.Graph
         Graph corresponding to the specified play and representation.
     """
-    graph_type = representation.split("-")[0]
-    agg_type = representation.split("-")[1]
+    assert len(representation.split("-")) == 3, RuntimeError(
+        f"Unexpected representation string: {representation}, expected 3 components!"
+    )
 
-    assert graph_type in ["ce", "se"], RuntimeError("Unexpected graph type")
+    graph_type, agg_type, prop_type = representation.split("-")
 
-    nodes_file = os.path.join(GRAPHDATA_PATH, f"{play}_{graph_type}.nodes.csv")
-    edges_file = os.path.join(GRAPHDATA_PATH, f"{play}_{representation}.edges.csv")
+    assert graph_type in ["ce", "se"], RuntimeError(
+        f"Unexpected graph type: {graph_type}"
+    )
+    assert agg_type in ["scene", "group", "speech"], RuntimeError(
+        f"Unexpected aggregation type: {agg_type}"
+    )
 
-    # Use special representations for getting the nodes of star expansions
-    if graph_type == "se":
+    if graph_type == "ce":
+        nodes_file = os.path.join(GRAPHDATA_PATH, f"{play}_{graph_type}.nodes.csv")
+    else:  # i.e., graph_type == "se":
         nodes_repr = "-".join(representation.split("-")[:2])
         nodes_file = os.path.join(GRAPHDATA_PATH, f"{play}_{nodes_repr}.nodes.csv")
+    edges_file = os.path.join(GRAPHDATA_PATH, f"{play}_{representation}.edges.csv")
 
     nodes = pd.read_csv(nodes_file)
     edges = pd.read_csv(edges_file)
 
-    edges = edges.rename(
-        {
-            "source": "node1",
-            "target": "node2",
-        },
-        axis="columns",
-    )
-
-    # Get nice character names to stay more true to the raw data instead
-    # of spewing out additional tokens.
-    nodes.node = nodes.node.map(prettify_identifier)
-    edges.node1 = edges.node1.map(prettify_identifier)
+    edges = rename_directed_columns(edges)
 
     # Coercing this to a `str` is at best a NOP; it only ever applies to
     # the star expansion.
     edges.node2 = edges.node2.astype(str)
-    edges.node2 = edges.node2.map(prettify_identifier)
 
-    nodes = nodes.query("not node.str.isupper()")
-    edges = edges.query("not node1.str.isupper() and not node2.str.isupper()")
+    if restrict_to_named_characters:
+        named_nodes = [
+            tup[0]
+            for tup in filter(
+                lambda tup: not tup[-1].isupper(),
+                zip(nodes.node, nodes.node.map(remove_uppercase_prefixes)),
+            )
+        ]
+        nodes = nodes.query("node in @named_nodes").copy()
+        edges = edges.query("node1 in @named_nodes and node2 in @named_nodes").copy()
 
-    # Check type of graph to create in order to potentially support
-    # multi-edges.
-    prop_type = representation.split("-")[2]
-
+    # TODO the if-else branches on unintuitive decisions
     if agg_type != "speech":
-
         if prop_type.startswith("m"):
             G = nx.MultiGraph()
         else:
@@ -89,10 +92,13 @@ def load_graph(play, representation, edge_weights=None):
         if graph_type == "ce":
             G.add_nodes_from(nodes.node)
         elif graph_type == "se":
-            G.add_nodes_from(edges.node1, node_type="character")
-            G.add_nodes_from(edges.node2, node_type="text_unit")
+            G.add_nodes_from(
+                nodes.query("node_type == 'character'").node, node_type="character"
+            )
+            G.add_nodes_from(
+                nodes.query("node_type == 'text_unit'").node, node_type="text_unit"
+            )
     else:
-
         if prop_type.startswith("m"):
             G = nx.MultiDiGraph()
         else:
@@ -112,27 +118,25 @@ def load_graph(play, representation, edge_weights=None):
     attribute_columns = [c for c in edges.columns if c not in key_columns]
     edges_indexed = edges.set_index(key_columns)
     for attribute in attribute_columns:
-        if attribute != edge_weights:
-            values = dict(edges_indexed[attribute])
-            nx.set_edge_attributes(G, values, name=attribute)
+        values = dict(edges_indexed[attribute])
+        nx.set_edge_attributes(G, values, name=attribute)
 
     return G
 
 
 def find_key_columns(G):
-    if isinstance(G, nx.MultiDiGraph):
-        return ["node1", "node2", "key"]
-    elif isinstance(G, nx.MultiGraph):
-        return ["node1", "node2", "key"]
-    elif isinstance(G, nx.DiGraph):
-        return ["node1", "node2"]
-    elif isinstance(G, nx.Graph):
-        return ["node1", "node2"]
+    if isinstance(G, nx.MultiDiGraph) or isinstance(G, nx.MultiGraph):
+        key_columns = ["node1", "node2", "key"]
+    elif isinstance(G, nx.DiGraph) or isinstance(G, nx.Graph):
+        key_columns = ["node1", "node2"]
     else:
         raise ValueError(f"Unexpected graph type: {type(G)}")
+    return key_columns
 
 
-def load_hypergraph(play, representation, edge_weights=None):
+def load_hypergraph(
+    play, representation, edge_weights=None, restrict_to_named_characters=True
+):
     """Load specific hypergraph representation for a play.
 
     Parameters
@@ -151,17 +155,31 @@ def load_hypergraph(play, representation, edge_weights=None):
     hnx.Hypergraph
         Hypergraph corresponding to the specified play and representation.
     """
-    hypergraph_type = representation.split("-")[0]
-    agg_type = representation.split("-")[1]
+    assert len(representation.split("-")) == 3, RuntimeError(
+        f"Unexpected representation string: {representation}, expected 3 components!"
+    )
+
+    hypergraph_type, agg_type, prop_type = representation.split("-")
 
     assert hypergraph_type == "hg", RuntimeError("Expecting hypergraph representation")
 
     edges_file = os.path.join(GRAPHDATA_PATH, f"{play}_{representation}.edges.csv")
     edges = pd.read_csv(edges_file)
 
-    edges.onstage = edges.onstage.map(
-        lambda x: list(map(prettify_identifier, x.split()))
-    ).map(lambda onstage: [x for x in onstage if not x.isupper()])
+    edges.onstage = edges.onstage.map(lambda x: x.split()).map(
+        lambda onstage: [x for x in onstage if not x.isupper()]
+    )
+
+    if restrict_to_named_characters:
+        named_characters = {
+            elem
+            for sublist in edges.onstage
+            for elem in sublist
+            if not remove_uppercase_prefixes(elem).isupper()
+        }
+        edges.onstage = edges.onstage.map(
+            lambda characters: [elem for elem in characters if elem in named_characters]
+        )
 
     H = hnx.Hypergraph()
     for idx, row in edges.iterrows():

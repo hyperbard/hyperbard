@@ -24,7 +24,26 @@ def get_name_from_identifier(character_identifier: str) -> str:
     :param character_identifier: Character identifier of shape "#CharacterName_PlayAbbreviation"
     :return: Character name
     """
-    return re.split("_.*?$", character_identifier, maxsplit=1)[0].replace("#", "")
+    return remove_play_abbreviation(remove_hashtag(character_identifier))
+
+
+def remove_hashtag(identifier: str) -> str:
+    return re.sub("^#", "", identifier)
+
+
+def remove_play_abbreviation(identifier: str) -> str:
+    return re.sub("_.*?$", "", identifier)
+
+
+def remove_uppercase_prefixes(identifier: str) -> str:
+    identifier = get_name_from_identifier(identifier)
+    split_identifier = identifier.split(".")
+    last_part = split_identifier[-1]
+    if not last_part.isupper() and not last_part.isnumeric():
+        new_identifier = last_part
+    else:
+        new_identifier = identifier
+    return new_identifier
 
 
 def sort_join_strings(string_iterable: Iterable[str]) -> str:
