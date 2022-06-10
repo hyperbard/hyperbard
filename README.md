@@ -254,13 +254,31 @@ The figures illustrate the clique expansion (`_ce`), the star expansion
 (`_se`), and the hypergraph representation (`_hg`) of the scene,
 respectively.
 
-### Plotting rankings for different graph representations (`make plot_graph_rankings`)
+### Plotting rank correlations for different graph representations (`make plot_rank_correlations`)
 
 One of the major points of our paper is that representations differ in
-expressive power and in information flow. To illustrate this, we show
-how the ranking of named characters in the plays changes as a function
-of the selected representation. This is shown in Fig. 8, which can be
-reproduced by the following script:
+expressive power and in information flow. To see how the ranking for
+"Romeo & Juliet" correlates over different representations and how these
+correlations compare to the average correlation across the corpus, we
+show a partitioned matrix in Fig. 7. This figure can be reproduced by
+the following script:
+
+```
+$ poetry run python src/hyperbard/plot_rank_correlations.py
+```
+
+#### Output
+
+The script will create a figure called `romeo-and-juliet_rank-correlations.pdf`
+in `paper_graphics`, showing the correlation and its comparison to the
+overall correlations in the corpus.
+
+### Plotting rankings for different graph representations (`make plot_graph_rankings`)
+
+To further illustrate our point about the differences in expressive
+power for characters, we also show how the ranking of named characters
+in the plays changes as a function of the selected representation. This
+is depicted by Fig. 8, which can be reproduced by the following script:
 
 ```
 $ poetry run python src/hyperbard/plot_graph_rankings.py
@@ -280,7 +298,7 @@ a speaking role, will be used.
 In addition to the graphics, the folder `rankingdata` in the root
 directory of the repository will contain CSV files that contain the
 ranks of named characters (rows) according to different representations
-(columns). Here's an example ranking file for "Romeo and Juliet":
+(columns). Here's an example ranking file for "Romeo & Juliet":
 
 ```
 $ cat rankingdata/romeo-and-juliet_ranking.csv
