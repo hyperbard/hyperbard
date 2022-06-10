@@ -1,5 +1,11 @@
-The dataset is licensed under a CC BY-NC 4.0 license, the text of which
-is restated below. See https://creativecommons.org/licenses/by-nc/4.0/.
+The dataset is licensed under a CC BY-NC 4.0 license, see
+https://creativecommons.org/licenses/by-nc/4.0/, the text of which
+is restated below.
+
+The raw data (TEI simple-encoded XML files in rawdata.zip resp. rawdata/) is
+taken from Folger Digital Texts, maintained by the Folger Shakespeare Library
+and released under a CC BY-NC 3.0 Unported License, and no changes are made to
+the raw data sources.
 
 Attribution-NonCommercial 4.0 International
 
