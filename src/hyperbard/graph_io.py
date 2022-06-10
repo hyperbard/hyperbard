@@ -134,9 +134,7 @@ def find_key_columns(G):
     return key_columns
 
 
-def load_hypergraph(
-    play, representation, edge_weights=None, restrict_to_named_characters=True
-):
+def load_hypergraph(play, representation, restrict_to_named_characters=True):
     """Load specific hypergraph representation for a play.
 
     Parameters

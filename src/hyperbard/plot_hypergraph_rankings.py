@@ -10,12 +10,11 @@ from hyperbard.graph_io import load_hypergraph
 from hyperbard.plot_graph_rankings import plot_character_rankings
 from hyperbard.plotting_utils import set_rcParams
 from hyperbard.ranking import get_character_ranking
+from hyperbard.track_time import timeit
 from hyperbard.utils import get_filename_base, remove_uppercase_prefixes
 
-set_rcParams()
 
-
-def handle_play(play):
+def compute_hypergraph_ranking_df(play):
     print(play)
 
     hg_group_mw = load_hypergraph(play, "hg-group-mw")
@@ -46,7 +45,11 @@ def handle_play(play):
     df_ranking = get_character_ranking(representations)
     df_ranking.index = df_ranking.index.map(remove_uppercase_prefixes)
     df_ranking = df_ranking.sort_index()
+    return df_ranking
 
+
+def handle_play(play):
+    df_ranking = compute_hypergraph_ranking_df(play)
     plot_character_rankings(
         df_ranking,
         save_path=os.path.join(
@@ -54,10 +57,9 @@ def handle_play(play):
         ),
     )
 
-    return df_ranking
 
-
-if __name__ == "__main__":
+@timeit
+def plot_hypergraph_rankings():
     plays = [
         get_filename_base(fn).replace(".agg", "")
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
@@ -65,3 +67,8 @@ if __name__ == "__main__":
 
     for play in plays:
         handle_play(play)
+
+
+if __name__ == "__main__":
+    set_rcParams()
+    plot_hypergraph_rankings()

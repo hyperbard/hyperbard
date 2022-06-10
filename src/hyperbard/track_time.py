@@ -5,6 +5,8 @@ from hyperbard.statics import RESOURCE_USAGE_PATH
 
 
 def timeit(method):
+    os.makedirs(RESOURCE_USAGE_PATH, exist_ok=True)
+
     def timed(*args, **kw):
         start = time.time()
         result = method(*args, **kw)

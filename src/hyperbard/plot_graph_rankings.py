@@ -59,38 +59,6 @@ def plot_character_rankings(character_ranking_df, save_path=None):
         plt.show()
 
 
-def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=None):
-    vmin = min(upper.min().min(), lower.min().min())
-
-    sns.heatmap(
-        upper,
-        square=True,
-        cmap=cm.RdYlGn,
-        cbar_kws=dict(shrink=0.8),
-        mask=np.tril(upper, k=0).astype(bool),
-        vmin=vmin,
-        vmax=1.0,
-        cbar=False,
-    )
-    sns.heatmap(
-        lower,
-        square=True,
-        cmap=cm.Greys,
-        cbar_kws=dict(shrink=0.8),
-        mask=np.triu(lower.values, k=0).astype(bool),
-        vmin=vmin,
-        vmax=1.0,
-    )
-
-    plt.title(f"lower triangle: {lower_name}, upper triangle: {upper_name}")
-
-    if save_path is not None:
-        plt.savefig(save_path, transparent=True, backend="pgf", bbox_inches="tight")
-        plt.close()
-    else:
-        plt.show()
-
-
 def get_selected_representations(play):
     ce_scene_b = load_graph(play, "ce-scene-w", "count")
     ce_scene_m = load_graph(play, "ce-scene-mw", "n_lines")
@@ -172,7 +140,6 @@ def compute_ranking_df(play):
     df_ranking = get_character_ranking(representations)
     df_ranking.index = df_ranking.index.map(remove_uppercase_prefixes)
     df_ranking = df_ranking.sort_index()
-
     return df_ranking
 
 
