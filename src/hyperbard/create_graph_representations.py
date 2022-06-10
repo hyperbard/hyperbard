@@ -12,6 +12,7 @@ from hyperbard.graph_representations import (
     get_weighted_bipartite_graph,
     get_weighted_multigraph,
 )
+from hyperbard.track_time import timeit
 from hyperbard.utils import get_filename_base
 
 
@@ -152,10 +153,14 @@ def handle_file(file):
         save_graph(G, representation, f"{GRAPHDATA_PATH}/{file_base}")
 
 
+@timeit
+def create_graph_representations():
+    for file in files:
+        handle_file(file)
+
+
 if __name__ == "__main__":
     files = sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     print(f"Found {len(files)} files to process.")
     os.makedirs(GRAPHDATA_PATH, exist_ok=True)
-
-    for file in files:
-        handle_file(file)
+    create_graph_representations()
