@@ -18,7 +18,7 @@ set_rcParams()
 def handle_play(play):
     print(play)
 
-    hg_group_mw = load_hypergraph(play, "hg-group-mw", "n_lines")
+    hg_group_mw = load_hypergraph(play, "hg-group-mw")
 
     sublevel = [
         {

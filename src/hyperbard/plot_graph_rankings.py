@@ -92,7 +92,7 @@ def plot_correlation_matrices(lower, upper, lower_name, upper_name, save_path=No
         plt.show()
 
 
-def handle_play(play):
+def compute_ranking_df(play):
     print(play)
 
     ce_scene_b = load_graph(play, "ce-scene-w", "count")
@@ -167,34 +167,13 @@ def handle_play(play):
         },
     ]
 
-    df_ranking = get_character_ranking(representations)
     df_ranking = get_character_ranking(representations).rename(
         dict(index="node"), axis=1
     )
     df_ranking.node = df_ranking.node.map(remove_uppercase_prefixes)
     df_ranking = df_ranking.sort_values("node").rename(dict(node="index"), axis=1)
 
-    plot_character_rankings(
-        df_ranking,
-        save_path=os.path.join(
-            f"{GRAPHICS_PATH}", f"{play}_ranking_parallel_coordinates.pdf"
-        ),
-    )
-
     return df_ranking
-
-
-def calculate_correlation_matrices(rankings):
-    """Calculate correlation matrices from dictionary of data frames."""
-    correlation_matrices = {}
-
-    for play, ranking in rankings.items():
-        ranking = ranking.set_index("index")
-        correlations = ranking.corr("spearman")
-
-        correlation_matrices[play] = correlations
-
-    return correlation_matrices
 
 
 if __name__ == "__main__":
@@ -206,14 +185,15 @@ if __name__ == "__main__":
         for fn in sorted(glob(f"{DATA_PATH}/*.agg.csv"))
     ]
 
-    # Store rankings for subsequent comparison
-    rankings = {}
-
     for play in plays:
-        df_ranking = handle_play(play)
+        df_ranking = compute_ranking_df(play)
+        plot_character_rankings(
+            df_ranking,
+            save_path=os.path.join(
+                f"{GRAPHICS_PATH}", f"{play}_ranking_parallel_coordinates.pdf"
+            ),
+        )
 
         df_ranking.to_csv(
             os.path.join(f"{RANKINGDATA_PATH}", f"{play}_ranking.csv"), index=False
         )
-
-        rankings[play] = df_ranking

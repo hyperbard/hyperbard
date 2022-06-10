@@ -616,7 +616,7 @@ if __name__ == "__main__":
     )
 
     # Hypergraphs
-    H = load_hypergraph("romeo-and-juliet", "hg-group-mw", "n_lines")
+    H = load_hypergraph("romeo-and-juliet", "hg-group-mw")
     hyperedges_act_three = [e for e in H.edges() if e.act == 3]
     node_weights_act_three = pd.read_csv(
         f"{GRAPHDATA_PATH}/romeo-and-juliet_hg-group-mw.node-weights.csv"
