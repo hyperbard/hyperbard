@@ -92,22 +92,9 @@ def plot_romeo_bipartite(selected_labels, font_size):
         tight=True,
     )
 
-    bipartite_labels = {
-        **{
-            n: remove_uppercase_prefixes(n)
-            if n not in selected_labels
-            else r"\textbf{" + remove_uppercase_prefixes(n) + "}"
-            for n in characters_act3
-        },
-        **{n: make_label(n) for n in group_play_parts_act3},
-    }
-    min_label = min([n[-1] for n in bipartite_labels.values() if type(n) == list])
-    for k, v in bipartite_labels.items():
-        if type(v) == list:
-            bipartite_labels[k][-1] -= min_label - 1
-            bipartite_labels[
-                k
-            ] = f"{bipartite_labels[k][0]}.{bipartite_labels[k][1]}.{bipartite_labels[k][-1]:02}"
+    bipartite_labels = get_bipartite_labels(
+        characters_act3, group_play_parts_act3, selected_labels
+    )
 
     pos = {
         **{
@@ -161,129 +148,177 @@ def plot_romeo_bipartite(selected_labels, font_size):
         axis_off=True,
         tight=True,
     )
-    #
-    # # TODO refactor to use graph loader
-    # speech_nodes = pd.read_csv(f"{GRAPHDATA_PATH}/romeo-and-juliet_se-speech.nodes.csv")
-    # speech_nodes.node = speech_nodes.node.map(get_name_from_identifier)
-    # speech_edges_wd = pd.read_csv(
-    #     f"{GRAPHDATA_PATH}/romeo-and-juliet_se-speech-wd.edges.csv"
-    # )
-    # speech_edges_wd.source = speech_edges_wd.source.map(get_name_from_identifier)
-    # speech_edges_wd.target = speech_edges_wd.target.map(get_name_from_identifier)
-    # speech_edges_wd_3_5 = speech_edges_wd.query(
-    #     "source.str.startswith('3.') or target.str.startswith('3.')"
-    # ).copy()
-    # speech_edges_wd_3_5 = speech_edges_wd_3_5.query(
-    #     "not source.str.isupper() and not target.str.isupper()"
-    # ).copy()
-    # speech_edges_wd_3_5.source = speech_edges_wd_3_5.source.map(
-    #     lambda x: x if x.startswith("3") else f"{x}-O"
-    # )
-    # speech_edges_wd_3_5.target = speech_edges_wd_3_5.target.map(
-    #     lambda x: x if x.startswith("3") else f"{x}-I"
-    # )
-    # speech_G = nx.DiGraph()
-    # speech_G.add_nodes_from(
-    #     {n for n in list(speech_edges_wd_3_5.source) + list(speech_edges_wd_3_5.target)}
-    # )
-    # speech_G.add_weighted_edges_from(
-    #     list(
-    #         zip(
-    #             speech_edges_wd_3_5.source,
-    #             speech_edges_wd_3_5.target,
-    #             speech_edges_wd_3_5.n_lines,
-    #         )
-    #     )
-    # )
-    # in_characters = sorted([n for n in speech_G.nodes if n.endswith("I")])
-    # out_characters = sorted([n for n in speech_G.nodes if n.endswith("O")])
-    # text_units = sorted([n for n in speech_G.nodes if n.startswith("3")])
-    #
-    # pos = {
-    #     **{
-    #         k: (0, 1 - idx / (len(out_characters) - 1))
-    #         for idx, k in enumerate(out_characters)
-    #     },
-    #     **{k: (1, 1 - idx / (len(text_units) - 1)) for idx, k in enumerate(text_units)},
-    #     **{
-    #         k: (2, 1 - idx / (len(in_characters) - 1))
-    #         for idx, k in enumerate(in_characters)
-    #     },
-    # }
-    #
-    # fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6))
-    # speech_edgewidths = [
-    #     w / (75 / 2)
-    #     for u, v, w in sorted(speech_G.edges(data="weight"), key=lambda tup: tup[-1])
-    # ]
-    # speech_edgewidths_out = [
-    #     w / (75 / 2)
-    #     for u, v, w in sorted(speech_G.edges(data="weight"), key=lambda tup: tup[-1])
-    #     if u.endswith("O")
-    # ]
-    # speech_edgewidths_in = [
-    #     w / (75 / 2)
-    #     for u, v, w in sorted(speech_G.edges(data="weight"), key=lambda tup: tup[-1])
-    #     if v.endswith("I")
-    # ]
-    # min3 = min(speech_edgewidths)
-    # max3 = max(speech_edgewidths)
-    # nx.draw_networkx_edges(
-    #     speech_G,
-    #     pos=pos,
-    #     width=speech_edgewidths_out,
-    #     edgelist=[
-    #         (u, v)
-    #         for u, v, w in sorted(
-    #             speech_G.edges(data="weight"), key=lambda tup: tup[-1]
-    #         )
-    #         if u.endswith("O")
-    #     ],
-    #     edge_cmap=cm.Reds,
-    #     edge_vmin=min3,
-    #     edge_vmax=max3,
-    #     edge_color=speech_edgewidths_out,
-    #     arrows=True,
-    #     arrowstyle="wedge",
-    # )
-    # nx.draw_networkx_edges(
-    #     speech_G,
-    #     pos=pos,
-    #     width=speech_edgewidths_in,
-    #     edgelist=[
-    #         (u, v)
-    #         for u, v, w in sorted(
-    #             speech_G.edges(data="weight"), key=lambda tup: tup[-1]
-    #         )
-    #         if v.endswith("I")
-    #     ],
-    #     edge_cmap=cm.Blues,
-    #     edge_vmin=min3,
-    #     edge_vmax=max3,
-    #     edge_color=speech_edgewidths_in,
-    #     arrows=True,
-    #     arrowstyle="wedge",
-    # )
-    # for n in speech_G.nodes():
-    #     pos_n = pos[n]
-    #     label_n = bipartite_labels[n.split("-")[0]]
-    #     if pos_n[0] == 0:
-    #         ha = "right"
-    #         fontsize = font_size
-    #     elif pos_n[0] == 2:
-    #         ha = "left"
-    #         fontsize = font_size
-    #     else:
-    #         ha = "center"
-    #         fontsize = font_size - 6
-    #     va = "center"
-    #     txt = ax.annotate(label_n, pos_n, fontsize=fontsize, va=va, ha=ha)
-    #     txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
-    # save_pgf_fig(
-    #     f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_se-speech_3.pdf",
-    #     axis_off=True,
-    #     tight=True,
-    # )
+
+
+def get_bipartite_labels(characters, text_units, selected_labels):
+    bipartite_labels = {
+        **{
+            n: remove_uppercase_prefixes(n)
+            if n not in selected_labels
+            else r"\textbf{" + remove_uppercase_prefixes(n) + "}"
+            for n in characters
+        },
+        **{n: make_label(n) for n in text_units},
+    }
+    min_label = min([n[-1] for n in bipartite_labels.values() if type(n) == list])
+    for k, v in bipartite_labels.items():
+        if type(v) == list:
+            bipartite_labels[k][-1] -= min_label - 1
+            bipartite_labels[
+                k
+            ] = f"{bipartite_labels[k][0]}.{bipartite_labels[k][1]}.{bipartite_labels[k][-1]:02}"
+    return bipartite_labels
+
+
+def plot_romeo_bipartite_speech(selected_labels, font_size):
+    speech_G = load_graph("romeo-and-juliet", "se-speech-wd", "n_lines")
+    speech_G.remove_nodes_from(
+        [
+            n
+            for n, node_type in speech_G.nodes(data="node_type")
+            if node_type == "text_unit" and not n.startswith("3")
+        ]
+    )
+    isolates = list(nx.isolates(speech_G))
+    speech_G.remove_nodes_from(isolates)
+    speech_G_split = nx.DiGraph()
+    speech_G_split.add_nodes_from(
+        [
+            n
+            for n, node_type in speech_G.nodes(data="node_type")
+            if node_type == "text_unit"
+        ],
+        node_type="text_unit",
+    )
+    speech_G_split.add_nodes_from(
+        [
+            f"{u}-O"
+            for u, v, edge_type in speech_G.edges(data="edge_type")
+            if edge_type == "active"
+        ],
+        node_type="character",
+    )
+    speech_G_split.add_nodes_from(
+        [
+            f"{v}-I"
+            for u, v, edge_type in speech_G.edges(data="edge_type")
+            if edge_type == "passive"
+        ],
+        node_type="character",
+    )
+    speech_G_split.add_weighted_edges_from(
+        [
+            (f"{u}-O", v, data["n_lines"])
+            for u, v, data in speech_G.edges(data=True)
+            if data["edge_type"] == "active"
+        ],
+        edge_type="active",
+    )
+    speech_G_split.add_weighted_edges_from(
+        [
+            (u, f"{v}-I", data["n_lines"])
+            for u, v, data in speech_G.edges(data=True)
+            if data["edge_type"] == "passive"
+        ],
+        edge_type="passive",
+    )
+    in_characters = sorted([n for n in speech_G_split.nodes if n.endswith("I")])
+    out_characters = sorted([n for n in speech_G_split.nodes if n.endswith("O")])
+    text_units = sorted([n for n in speech_G_split.nodes if n.startswith("3")])
+    bipartite_labels = get_bipartite_labels(
+        sorted({*in_characters, *out_characters}), text_units, selected_labels
+    )
+    pos = {
+        **{
+            k: (0, 1 - idx / (len(out_characters) - 1))
+            for idx, k in enumerate(out_characters)
+        },
+        **{k: (1, 1 - idx / (len(text_units) - 1)) for idx, k in enumerate(text_units)},
+        **{
+            k: (2, 1 - idx / (len(in_characters) - 1))
+            for idx, k in enumerate(in_characters)
+        },
+    }
+    fig, ax = plt.subplots(1, 1, figsize=(6 + 2, 6))
+    speech_edgewidths = [
+        w / (75 / 2)
+        for u, v, w in sorted(
+            speech_G_split.edges(data="weight"), key=lambda tup: tup[-1]
+        )
+    ]
+    speech_edgewidths_out = [
+        w / (75 / 2)
+        for u, v, w in sorted(
+            speech_G_split.edges(data="weight"), key=lambda tup: tup[-1]
+        )
+        if u.endswith("O")
+    ]
+    speech_edgewidths_in = [
+        w / (75 / 2)
+        for u, v, w in sorted(
+            speech_G_split.edges(data="weight"), key=lambda tup: tup[-1]
+        )
+        if v.endswith("I")
+    ]
+    min3 = min(speech_edgewidths)
+    max3 = max(speech_edgewidths)
+
+    nx.draw_networkx_edges(
+        speech_G_split,
+        pos=pos,
+        width=speech_edgewidths_out,
+        edgelist=[
+            (u, v)
+            for u, v, w in sorted(
+                speech_G_split.edges(data="weight"), key=lambda tup: tup[-1]
+            )
+            if u.endswith("O")
+        ],
+        edge_cmap=cm.Reds,
+        edge_vmin=min3,
+        edge_vmax=max3,
+        edge_color=speech_edgewidths_out,
+        arrows=True,
+        arrowstyle="wedge",
+    )
+    nx.draw_networkx_edges(
+        speech_G_split,
+        pos=pos,
+        width=speech_edgewidths_in,
+        edgelist=[
+            (u, v)
+            for u, v, w in sorted(
+                speech_G_split.edges(data="weight"), key=lambda tup: tup[-1]
+            )
+            if v.endswith("I")
+        ],
+        edge_cmap=cm.Blues,
+        edge_vmin=min3,
+        edge_vmax=max3,
+        edge_color=speech_edgewidths_in,
+        arrows=True,
+        arrowstyle="wedge",
+    )
+    for n in speech_G_split.nodes():
+        pos_n = pos[n]
+        label_n = bipartite_labels[n]
+        if pos_n[0] == 0:
+            ha = "right"
+            fontsize = font_size
+        elif pos_n[0] == 2:
+            ha = "left"
+            fontsize = font_size
+        else:
+            ha = "center"
+            fontsize = font_size - 6
+        va = "center"
+        txt = ax.annotate(label_n, pos_n, fontsize=fontsize, va=va, ha=ha)
+        txt.set_path_effects([PathEffects.withStroke(linewidth=5, foreground="w")])
+    save_pgf_fig(
+        f"{PAPERGRAPHICS_PATH}/romeo_and_juliet_se-speech_3.pdf",
+        axis_off=True,
+        tight=True,
+    )
 
 
 def position_bipartite_labels(G, pos, ax, labels, fontsize):

@@ -1,4 +1,7 @@
-from hyperbard.plot_romeo_bipartite import plot_romeo_bipartite
+from hyperbard.plot_romeo_bipartite import (
+    plot_romeo_bipartite,
+    plot_romeo_bipartite_speech,
+)
 from hyperbard.plot_romeo_hypergraph_over_time import plot_romeo_hypergraph_over_time
 from hyperbard.plot_romeo_hypergraphs import plot_romeo_hypergraphs
 from hyperbard.plot_romeo_radials import (
@@ -14,10 +17,11 @@ if __name__ == "__main__":
 
     selected_labels = sorted(["Juliet", "Romeo", "Capulet", "LadyCapulet", "Nurse"])
 
-    # plot_romeo_radials_full(selected_labels, font_size, height)
-    # plot_romeo_radials_partial(selected_labels, font_size, height)
+    plot_romeo_radials_full(selected_labels, font_size, height)
+    plot_romeo_radials_partial(selected_labels, font_size, height)
 
     plot_romeo_bipartite(selected_labels, font_size)
+    plot_romeo_bipartite_speech(selected_labels, font_size)
 
     plot_romeo_hypergraphs()
 
