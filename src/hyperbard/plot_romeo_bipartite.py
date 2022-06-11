@@ -52,7 +52,7 @@ def plot_romeo_bipartite(selected_labels, font_size):
     labels = {
         **{
             n: remove_uppercase_prefixes(n)
-            if n not in selected_labels
+            if remove_uppercase_prefixes(n) not in selected_labels
             else r"\textbf{" + remove_uppercase_prefixes(n) + "}"
             for n in characters_act3
         },
@@ -154,7 +154,7 @@ def get_bipartite_labels(characters, text_units, selected_labels):
     bipartite_labels = {
         **{
             n: remove_uppercase_prefixes(n)
-            if n not in selected_labels
+            if remove_uppercase_prefixes(n) not in selected_labels
             else r"\textbf{" + remove_uppercase_prefixes(n) + "}"
             for n in characters
         },
