@@ -3,6 +3,7 @@ All the world's a (hyper)graph: drama data for data drama
 
 <a href="https://codeclimate.com/repos/62a1a44d41bc7c32f8029bc8/maintainability"><img src="https://api.codeclimate.com/v1/badges/bf9e6df4ada06f51bd91/maintainability" /></a>
 [![codecov](https://codecov.io/gh/hyperbard/hyperbard/branch/main/graph/badge.svg?token=D5QIXPFRB2)](https://codecov.io/gh/hyperbard/hyperbard)
+[![Documentation Status](https://readthedocs.org/projects/hyperbard/badge/?version=latest)](https://hyperbard.readthedocs.io/en/latest/?badge=latest)
 
 - [Folger Shakespeare](https://shakespeare.folger.edu/download-the-folger-shakespeare-complete-set/) (our data source)
 - [Oxford Shakespeare](https://oll.libertyfund.org/title/shakespeare-the-complete-works-of-william-shakespeare-part-1-the-oxford-shakespeare)
