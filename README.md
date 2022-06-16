@@ -1,13 +1,19 @@
 # hyperbard
 All the world's a (hyper)graph: drama data for data drama
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6627158.svg)](https://doi.org/10.5281/zenodo.6627158)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hyperbard/sandbox/main?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fhyperbard%252Ftutorials%26urlpath%3Dlab%252Ftree%252Ftutorials%252Fnotebooks%252Fwelcome.ipynb%26branch%3Dmain)
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6627160.svg)](https://doi.org/10.5281/zenodo.6627160)
+
 <a href="https://codeclimate.com/repos/62a1a44d41bc7c32f8029bc8/maintainability"><img src="https://api.codeclimate.com/v1/badges/bf9e6df4ada06f51bd91/maintainability" /></a>
 [![codecov](https://codecov.io/gh/hyperbard/hyperbard/branch/main/graph/badge.svg?token=D5QIXPFRB2)](https://codecov.io/gh/hyperbard/hyperbard)
 [![Documentation Status](https://readthedocs.org/projects/hyperbard/badge/?version=latest)](https://hyperbard.readthedocs.io/en/latest/?badge=latest)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hyperbard/sandbox/main?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fhyperbard%252Ftutorials%26urlpath%3Dlab%252Ftree%252Ftutorials%252Fnotebooks%252Fwelcome.ipynb%26branch%3Dmain)
+
+## Sources
 
 - [Folger Shakespeare](https://shakespeare.folger.edu/download-the-folger-shakespeare-complete-set/) (our data source)
 - [Oxford Shakespeare](https://oll.libertyfund.org/title/shakespeare-the-complete-works-of-william-shakespeare-part-1-the-oxford-shakespeare)
+
 
 ## Requirements
 
@@ -293,7 +299,7 @@ Fig. 8)  for each of the plays, which are stored in the `graphics`
 folder. Fig. 8 itself, for example, will be stored as
 `romeo-and-juliet_ranking_parallel_coordinates.pdf`.
 
-Note that these visualisations *only* incorporate named characters; the
+Note that these visualizations *only* incorporate named characters; the
 rankings may potentially change if *all* characters, even those without
 a speaking role, will be used.
 
@@ -337,5 +343,5 @@ notions of hypergraph degrees) for each of the plays, which are stored
 in the `graphics` folder. Fig. 9 itself, for example, will be stored as
 `romeo-and-juliet_hg_ranking_parallel_coordinates.pdf`.
 
-(Similar to the previous visualisations, all of these plots only
+(Similar to the previous visualizations, all of these plots only
 incorporate *named characters*.)
