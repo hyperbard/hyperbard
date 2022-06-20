@@ -1,9 +1,10 @@
 # hyperbard
 All the world's a (hyper)graph: drama data for data drama
 
+[![arXiv](https://img.shields.io/badge/arXiv-2206.08225-b31b1b.svg?style=flat)](https://arxiv.org/abs/2206.08225)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6627158.svg)](https://doi.org/10.5281/zenodo.6627158)
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hyperbard/sandbox/main?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fhyperbard%252Ftutorials%26urlpath%3Dlab%252Ftree%252Ftutorials%252Fnotebooks%252Fwelcome.ipynb%26branch%3Dmain)
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.6627160.svg)](https://doi.org/10.5281/zenodo.6627160)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/hyperbard/sandbox/main?urlpath=git-pull%3Frepo%3Dhttps%253A%252F%252Fgithub.com%252Fhyperbard%252Ftutorials%26urlpath%3Dlab%252Ftree%252Ftutorials%252Fnotebooks%252Fwelcome.ipynb%26branch%3Dmain)
 
 <a href="https://codeclimate.com/repos/62a1a44d41bc7c32f8029bc8/maintainability"><img src="https://api.codeclimate.com/v1/badges/bf9e6df4ada06f51bd91/maintainability" /></a>
 [![codecov](https://codecov.io/gh/hyperbard/hyperbard/branch/main/graph/badge.svg?token=D5QIXPFRB2)](https://codecov.io/gh/hyperbard/hyperbard)
